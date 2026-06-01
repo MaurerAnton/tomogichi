@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-01 — v0.4.3
+
+### Practice Notes
+- **Optional text notes** per practice session — attach a note after logging effect
+- **CLI**: "Note? (Enter to skip)" prompt after effect selection
+- **Qt GUI**: TextField in effect picker overlay for note input
+- **History**: 📝 indicator on entries with notes in both CLI and StatsPage
+- New `logEffectNote(effect, note)` slot in Backend
+
 ## 2026-05-31 — v0.4.2
 
 ### UX Polish
