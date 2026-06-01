@@ -24,6 +24,7 @@ GameState default_state();
 /* Add a practice entry to log */
 void log_practice(GameState& state, const std::string& person_id,
                   const std::string& skill_name, int minutes,
-                  Effect effect = EFFECT_NONE);
+                  Effect effect = EFFECT_NONE,
+                  const std::string& notes = "");
 
 #endif /* TOMOGICHI_STORAGE_H */

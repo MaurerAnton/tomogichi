@@ -220,6 +220,12 @@ Kirigami.Page {
                                       modelData.effect === "drained" ? "🪫" : "😐"
                                 font.pixelSize: 14
                             }
+                            Label {
+                                visible: modelData.notes.length > 0
+                                text: "📝"
+                                font.pixelSize: 12
+                                color: Kirigami.Theme.disabledTextColor
+                            }
                         }
                     }
                     Label {

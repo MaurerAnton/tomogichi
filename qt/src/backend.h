@@ -102,6 +102,7 @@ public slots:
 
     /* Log effect for the last practice (called after stopTimer) */
     void logEffect(const QString &effect); /* "energized","neutral","tired","drained" */
+    void logEffectNote(const QString &effect, const QString &note); /* with notes */
 
     /* Daily todo actions */
     void dailyTodoToggle(int index);

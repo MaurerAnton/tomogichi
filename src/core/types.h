@@ -42,6 +42,7 @@ struct PracticeEntry {
     int minutes;
     time_t timestamp;
     Effect effect;          /* how user felt after this practice */
+    std::string notes;      /* optional free-text note */
 };
 
 struct Task {

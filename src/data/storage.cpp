@@ -258,6 +258,7 @@ bool load_state(const std::string& path, GameState& state) {
                 else if (eff == "tired") pe.effect = EFFECT_TIRED;
                 else if (eff == "drained") pe.effect = EFFECT_DRAINED;
                 else pe.effect = EFFECT_NEUTRAL;
+                pe.notes = jl.value("notes", "");
                 state.practice_log.push_back(pe);
             }
         }
@@ -441,6 +442,9 @@ bool save_state(const std::string& path, const GameState& state) {
             case EFFECT_DRAINED:   jl["effect"] = "drained"; break;
             default:               jl["effect"] = "neutral"; break;
         }
+        if (!pe.notes.empty()) {
+            jl["notes"] = pe.notes;
+        }
         j["practice_log"].push_back(jl);
     }
 
@@ -481,12 +485,14 @@ GameState default_state() {
 
 void log_practice(GameState& state, const std::string& person_id,
                   const std::string& skill_name, int minutes,
-                  Effect effect) {
+                  Effect effect,
+                  const std::string& notes) {
     PracticeEntry pe;
     pe.person_id = person_id;
     pe.skill_name = skill_name;
     pe.minutes = minutes;
     pe.timestamp = time(nullptr);
     pe.effect = effect;
+    pe.notes = notes;
     state.practice_log.push_back(pe);
 }

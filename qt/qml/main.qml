@@ -173,9 +173,13 @@ Kirigami.ApplicationWindow {
                                 MouseArea {
                                     anchors.fill: parent
                                     onClicked: {
-                                        Backend.logEffect(modelData.e)
+                                        var n = noteInput.text.trim()
+                                        if (n.length > 0) {
+                                            Backend.logEffectNote(modelData.e, n)
+                                        } else {
+                                            Backend.logEffect(modelData.e)
+                                        }
                                         effectLoader.active = false
-                                        // Pop only timer page, stay on PersonPage
                                         while (root.pageStack.depth > 1 &&
                                                root.pageStack.currentItem &&
                                                root.pageStack.currentItem.objectName === "timerPage")
@@ -184,6 +188,13 @@ Kirigami.ApplicationWindow {
                                 }
                             }
                         }
+                    }
+
+                    TextField {
+                        id: noteInput
+                        Layout.fillWidth: true
+                        placeholderText: "Note? (optional)"
+                        font.pixelSize: 13
                     }
                 }
             }

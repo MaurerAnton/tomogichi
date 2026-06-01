@@ -262,6 +262,16 @@ static void cmd_practice(GameState& state, const std::string& person_id,
             }
             const char* eff_str[] = {"energized 🔋", "neutral", "tired 😮‍💨", "drained 🪫"};
             std::cout << "  → " << eff_str[eff] << "\n";
+
+            /* Prompt for optional note */
+            std::cout << "  Note? (Enter to skip)\n  \033[36m> \033[0m";
+            std::string note;
+            if (std::getline(std::cin, note) && !note.empty()) {
+                if (!state.practice_log.empty()) {
+                    state.practice_log.back().notes = note;
+                }
+                std::cout << "  → noted\n";
+            }
         }
     }
 }
@@ -297,10 +307,12 @@ static void cmd_history(const GameState& state, int days) {
 
         const Person* p = find_person(state.persons, it->person_id);
         std::string person_name = p ? p->name : it->person_id;
-        days_list.back().lines.push_back(
-            "  " + person_name + " " + it->skill_name + " " +
-            std::to_string(it->minutes) + "m"
-        );
+        std::string line = "  " + person_name + " " + it->skill_name + " " +
+            std::to_string(it->minutes) + "m";
+        if (!it->notes.empty()) {
+            line += " — \"" + it->notes + "\"";
+        }
+        days_list.back().lines.push_back(line);
     }
 
     if (days_list.empty()) {

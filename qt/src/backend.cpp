@@ -239,6 +239,18 @@ void Backend::logEffect(const QString &effect) {
     emit statsChanged();
 }
 
+void Backend::logEffectNote(const QString &effect, const QString &note) {
+    if (m_state.practice_log.empty()) return;
+    PracticeEntry &pe = m_state.practice_log.back();
+    if (effect == "energized") pe.effect = EFFECT_ENERGIZED;
+    else if (effect == "tired") pe.effect = EFFECT_TIRED;
+    else if (effect == "drained") pe.effect = EFFECT_DRAINED;
+    else pe.effect = EFFECT_NEUTRAL;
+    pe.notes = note.toStdString();
+    saveState();
+    emit statsChanged();
+}
+
 void Backend::redoEffect(const QString &effect) {
     logEffect(effect); /* same thing */
 }
@@ -881,6 +893,7 @@ QVariantList Backend::practiceHistory() const {
         else if (it->effect == EFFECT_TIRED) eff = "tired";
         else if (it->effect == EFFECT_DRAINED) eff = "drained";
         m["effect"] = QString(eff);
+        m["notes"] = QString::fromStdString(it->notes);
 
         /* Date string */
         char dbuf[32];
