@@ -1,0 +1,8 @@
+build/
+build-*/
+*.o
+tomogichi
+qt/build/
+qt/build-*/
+data/state.json
+data/state.json.bak

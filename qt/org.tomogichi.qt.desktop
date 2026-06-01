@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Tomogichi
+Comment=Personal RPG system for skill tracking
+Exec=tomogichi-qt
+Icon=org.tomogichi.qt
+Categories=Game;RolePlaying;Education;
+Terminal=false
+X-Purism-FormFactor=Workstation;Mobile;
