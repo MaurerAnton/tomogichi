@@ -455,7 +455,7 @@ Kirigami.Page {
 
                 Item { Layout.fillHeight: true }
                 Label {
-                    text: "Tomogichi v0.2.0 — Qt Quick + Kirigami"
+                    text: "Tomogichi v0.4.5 — Qt Quick + Kirigami"
                     font.pixelSize: 11; color: Kirigami.Theme.disabledTextColor
                     Layout.alignment: Qt.AlignHCenter
                 }
