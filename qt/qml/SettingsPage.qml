@@ -208,7 +208,7 @@ Kirigami.Page {
                         id: diaryInput
                         placeholderText: "What happened today?"
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 60
+                        Layout.preferredHeight: 80
                         wrapMode: TextArea.Wrap
                     }
                     Button { text: "Save"; onClicked: addDiary() }
@@ -306,7 +306,8 @@ Kirigami.Page {
                                     }
                                     Button {
                                         text: "Buy"
-                                        Layout.minimumWidth: 60
+                                        Layout.minimumWidth: 70
+                                        Layout.preferredWidth: 70
                                         enabled: Backend.coins >= modelData.cost
                                         onClicked: {
                                             if (modelData.id === "custom_title") {
@@ -378,13 +379,12 @@ Kirigami.Page {
                     }
                     TextField {
                         id: bdayDate
-                        placeholderText: "DD,MM"
+                        placeholderText: "DD.MM"
                         Layout.preferredWidth: 90
                         onTextChanged: {
-                            // Auto-insert comma after every 2 digits
-                            var raw = text.replace(/,/g, "")
-                            if (raw.length === 4) {
-                                var formatted = raw.substring(0,2) + "," + raw.substring(2,4)
+                            var raw = text.replace(/[^0-9]/g, "")
+                            if (raw.length >= 4) {
+                                var formatted = raw.substring(0,2) + "." + raw.substring(2,4)
                                 if (text !== formatted) {
                                     text = formatted
                                     cursorPosition = 5
@@ -524,7 +524,6 @@ Kirigami.Page {
             ComboBox {
                 id: chalPerson
                 model: ["any", "riff", "reef", "pitch", "rain"]
-                textRole: "text"
                 Layout.fillWidth: true
                 onCurrentTextChanged: updateChalSkills()
             }
