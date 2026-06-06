@@ -195,7 +195,7 @@ Kirigami.Page {
 
             GridLayout {
                 width: parent.width
-                columns: 2
+                columns: 1
                 columnSpacing: 10
                 rowSpacing: 10
 
@@ -203,7 +203,7 @@ Kirigami.Page {
                     model: personModel
                     delegate: Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 130
+                        Layout.preferredHeight: 160
                         radius: 12
                         color: Kirigami.Theme.backgroundColor
                         border.width: 1
@@ -263,7 +263,7 @@ Kirigami.Page {
                                 spacing: 0
                                 Label { text: model.name; font.pixelSize: 18; font.bold: true }
                                 RowLayout {
-                                    Label { text: model.role; font.pixelSize: 12; color: Kirigami.Theme.disabledTextColor }
+                                    Label { text: model.role; font.pixelSize: 14; color: Kirigami.Theme.textColor }
                                     Label {
                                         text: "✓"
                                         font.pixelSize: 12; color: "#4CAF50"
