@@ -880,6 +880,61 @@ bool replace_skill(Person& person, const std::string& old_name,
     return false;
 }
 
+bool delete_skill(Person& person, const std::string& skill_name) {
+    /* Check active skills first */
+    auto it = std::find_if(person.skills.begin(), person.skills.end(),
+        [&](const Skill& s) { return s.name == skill_name; });
+    if (it != person.skills.end()) {
+        /* Cannot delete the only remaining active skill */
+        if (person.skills.size() <= 1) return false;
+        bool was_main = it->is_main;
+        person.skills.erase(it);
+        if (was_main && !person.skills.empty()) {
+            person.skills[0].is_main = true;
+        }
+        person.level = calc_person_level(person.skills);
+        person.title = title_for_level(person.level);
+        return true;
+    }
+    /* Check archived skills */
+    auto ait = std::find_if(person.archived_skills.begin(), person.archived_skills.end(),
+        [&](const Skill& s) { return s.name == skill_name; });
+    if (ait != person.archived_skills.end()) {
+        person.archived_skills.erase(ait);
+        return true;
+    }
+    return false;
+}
+
+bool rename_skill(Person& person, const std::string& old_name, const std::string& new_name) {
+    if (old_name == new_name) return false;
+    if (new_name.empty()) return false;
+
+    /* Check new name doesn't already exist */
+    for (const auto& s : person.skills) {
+        if (s.name == new_name) return false;
+    }
+    for (const auto& s : person.archived_skills) {
+        if (s.name == new_name) return false;
+    }
+
+    /* Find in active skills */
+    for (auto& s : person.skills) {
+        if (s.name == old_name) {
+            s.name = new_name;
+            return true;
+        }
+    }
+    /* Find in archived */
+    for (auto& s : person.archived_skills) {
+        if (s.name == old_name) {
+            s.name = new_name;
+            return true;
+        }
+    }
+    return false;
+}
+
 /* --- Mood & Diary --- */
 
 std::vector<std::string> mood_words() {

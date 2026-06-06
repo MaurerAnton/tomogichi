@@ -1492,10 +1492,34 @@ static void cmd_skill_manage(GameState& state, std::istringstream& iss) {
         if (!any) std::cout << "No archived skills.\n";
         std::cout << std::endl;
     }
+    else if (sub == "delete" || sub == "del" || sub == "remove") {
+        iss >> pid >> skname;
+        Person* p = find_person(state.persons, pid);
+        if (!p) { std::cout << "Unknown person: " << pid << "\n\n"; return; }
+        if (delete_skill(*p, skname)) {
+            std::cout << "Skill deleted: " << p->name << " " << skname << "\n\n";
+        } else {
+            std::cout << "Cannot delete (last active skill or not found).\n\n";
+        }
+    }
+    else if (sub == "rename") {
+        std::string newname;
+        iss >> pid >> skname >> newname;
+        Person* p = find_person(state.persons, pid);
+        if (!p) { std::cout << "Unknown person: " << pid << "\n\n"; return; }
+        if (rename_skill(*p, skname, newname)) {
+            std::cout << "Skill renamed: " << p->name << " " << skname
+                      << " → " << newname << "\n\n";
+        } else {
+            std::cout << "Cannot rename (name conflict or not found).\n\n";
+        }
+    }
     else {
         std::cout << "Usage:\n";
         std::cout << "  skill archive <person> <skill>  — archive skill (preserve XP)\n";
         std::cout << "  skill reactivate <person> <skill> — restore from archive\n";
+        std::cout << "  skill delete <person> <skill>   — permanently delete skill\n";
+        std::cout << "  skill rename <person> <old> <new> — rename a skill\n";
         std::cout << "  skill list                      — show archived skills\n\n";
     }
 }

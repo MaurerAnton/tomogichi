@@ -120,6 +120,8 @@ public slots:
     void skillAdd(const QString &personId, const QString &skillName, bool isMain);
     void skillArchive(const QString &personId, const QString &skillName);
     void skillReactivate(const QString &personId, const QString &skillName);
+    void skillDelete(const QString &personId, const QString &skillName);
+    void skillRename(const QString &personId, const QString &oldName, const QString &newName);
 
     /* Task management */
     void taskAdd(const QString &text);

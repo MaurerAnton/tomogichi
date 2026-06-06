@@ -475,6 +475,22 @@ void Backend::skillReactivate(const QString &personId, const QString &skillName)
     emit personsChanged();
 }
 
+void Backend::skillDelete(const QString &personId, const QString &skillName) {
+    Person *p = find_person(m_state.persons, personId.toStdString());
+    if (!p) return;
+    if (!delete_skill(*p, skillName.toStdString())) return;
+    saveState();
+    emit personsChanged();
+}
+
+void Backend::skillRename(const QString &personId, const QString &oldName, const QString &newName) {
+    Person *p = find_person(m_state.persons, personId.toStdString());
+    if (!p) return;
+    if (!rename_skill(*p, oldName.toStdString(), newName.toStdString())) return;
+    saveState();
+    emit personsChanged();
+}
+
 /* --- Task Management --- */
 
 QVariantList Backend::tasks() const {

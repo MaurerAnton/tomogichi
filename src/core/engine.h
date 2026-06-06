@@ -184,6 +184,12 @@ bool reactivate_skill(Person& person, const std::string& skill_name);
 bool replace_skill(Person& person, const std::string& old_name,
                    const Skill& new_skill);
 
+/* Delete a skill permanently (active or archived). Cannot delete the last active skill. */
+bool delete_skill(Person& person, const std::string& skill_name);
+
+/* Rename a skill (active or archived). Updates cross-bonus rules that reference it. */
+bool rename_skill(Person& person, const std::string& old_name, const std::string& new_name);
+
 /* --- Mood & Diary --- */
 
 /* Valid mood words */

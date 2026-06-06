@@ -122,7 +122,56 @@ Kirigami.Page {
                                 color: model.warmth === "cold" ? "#EF5350" : Kirigami.Theme.disabledTextColor
                             }
                         }
-                        Label { text: "▶"; font.pixelSize: 22; color: Kirigami.Theme.highlightColor }
+
+                        ColumnLayout {
+                            spacing: 2
+                            Layout.alignment: Qt.AlignVCenter
+
+                            // Start timer (▶)
+                            Label {
+                                text: "▶"
+                                font.pixelSize: 22; color: Kirigami.Theme.highlightColor
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: {
+                                        Backend.startTimer(personId, model.name, 30)
+                                        applicationWindow().pageStack.push(timerComponent, {
+                                            personId: personId, personName: personName,
+                                            skillName: model.name
+                                        })
+                                    }
+                                }
+                            }
+
+                            // Rename (✎)
+                            Label {
+                                text: "✎"
+                                font.pixelSize: 14; color: Kirigami.Theme.disabledTextColor
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: {
+                                        renameDialog.oldName = model.name
+                                        renameDialog.newName = model.name
+                                        renameDialog.open()
+                                    }
+                                }
+                            }
+
+                            // Delete (✕)
+                            Label {
+                                text: "✕"
+                                font.pixelSize: 14; color: "#EF5350"
+                                visible: skillModel.count > 1 || !model.isMain
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: {
+                                        delSkillDialog.skillName = model.name
+                                        delSkillDialog.isMainSkill = model.isMain
+                                        delSkillDialog.open()
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -223,6 +272,46 @@ Kirigami.Page {
                 newSkillName.text = ""
                 newSkillMain.checked = false
             }
+        }
+    }
+
+    // Rename skill dialog
+    Dialog {
+        id: renameDialog
+        title: "Rename Skill"
+        property string oldName: ""
+        property alias newName: renameInput.text
+        ColumnLayout { spacing: 8; width: 280
+            Label { text: "New name:" }
+            TextField {
+                id: renameInput
+                Layout.fillWidth: true
+                text: renameDialog.oldName
+            }
+        }
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        onAccepted: {
+            if (renameInput.text.trim() && renameInput.text.trim() !== oldName) {
+                Backend.skillRename(personId, oldName, renameInput.text.trim())
+            }
+        }
+    }
+
+    // Delete skill confirmation dialog
+    Dialog {
+        id: delSkillDialog
+        title: "Delete Skill"
+        property string skillName: ""
+        property bool isMainSkill: false
+        Label {
+            text: delSkillDialog.isMainSkill ?
+                  "Delete main skill '" + delSkillDialog.skillName + "'?\nXP will be lost!" :
+                  "Delete '" + delSkillDialog.skillName + "'?\nXP will be lost!"
+            wrapMode: Text.WordWrap
+        }
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        onAccepted: {
+            Backend.skillDelete(personId, delSkillDialog.skillName)
         }
     }
 }
