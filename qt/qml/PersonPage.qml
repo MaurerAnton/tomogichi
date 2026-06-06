@@ -119,6 +119,7 @@ Kirigami.Page {
                             Label {
                                 text: model.daysSince === 0 ? "today" : model.daysSince === 1 ? "1 day ago" : model.daysSince + " days ago"
                                 font.pixelSize: 11
+                                visible: model.daysSince < 999
                                 color: model.warmth === "cold" ? "#EF5350" : Kirigami.Theme.disabledTextColor
                             }
                         }
