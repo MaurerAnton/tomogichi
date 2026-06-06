@@ -18,10 +18,10 @@ Kirigami.Page {
                 model: ["Tasks","Challenges","Journal","Archive","Shop","Birthdays","System"]
                 delegate: Rectangle {
                     Layout.fillWidth: true; height: 34; radius: 8
-                    color: index === activeTab ? Kirigami.Theme.highlightColor : "transparent"
-                    opacity: index === activeTab ? 0.2 : 0.05
+                    color: index === activeTab ? Qt.rgba(0.3, 0.5, 1.0, 0.2) : Qt.rgba(0.5, 0.5, 0.5, 0.08)
                     Label {
-                        anchors.centerIn: parent; text: modelData; font.pixelSize: 11
+                        anchors.centerIn: parent; text: modelData; font.pixelSize: 12
+                        color: index === activeTab ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
                         font.bold: index === activeTab
                     }
                     MouseArea { anchors.fill: parent; onClicked: activeTab = index }
