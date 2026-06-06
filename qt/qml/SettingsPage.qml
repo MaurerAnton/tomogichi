@@ -120,15 +120,60 @@ Kirigami.Page {
                 spacing: 8
                 Kirigami.Heading { text: "📓 Journal"; level: 3 }
 
-                // Mood input
+                // Mood — emoji picker
                 Label { text: "Mood"; font.pixelSize: 13; font.bold: true; color: Kirigami.Theme.highlightColor }
-                RowLayout {
+                Flow {
+                    Layout.fillWidth: true
                     spacing: 6
-                    TextField {
-                        id: moodInput; placeholderText: "focused / tired / creative ..."; Layout.fillWidth: true
-                        onAccepted: logMood()
+                    Repeater {
+                        model: [
+                            { e: "😊", w: "happy" },     { e: "😢", w: "sad" },
+                            { e: "😴", w: "tired" },     { e: "⚡", w: "energetic" },
+                            { e: "😰", w: "anxious" },   { e: "😌", w: "calm" },
+                            { e: "🎯", w: "focused" },   { e: "😵", w: "distracted" },
+                            { e: "💪", w: "motivated" }, { e: "🦥", w: "lazy" },
+                            { e: "🎨", w: "creative" },  { e: "🚧", w: "blocked" },
+                            { e: "🙏", w: "grateful" },  { e: "😤", w: "frustrated" },
+                            { e: "🕊️", w: "peaceful" }, { e: "🔄", w: "restless" },
+                            { e: "🤩", w: "excited" },   { e: "🥱", w: "bored" },
+                            { e: "🌟", w: "hopeful" },   { e: "🪫", w: "drained" },
+                            { e: "🤔", w: "curious" },   { e: "🌊", w: "overwhelmed" },
+                            { e: "😌", w: "content" },   { e: "🏆", w: "proud" },
+                            { e: "💔", w: "lonely" }
+                        ]
+                        delegate: Rectangle {
+                            width: label.implicitWidth + 16; height: 32; radius: 16
+                            color: Kirigami.Theme.backgroundColor
+                            border.width: 1; border.color: Qt.rgba(0.5,0.5,0.5,0.3)
+                            RowLayout {
+                                anchors.centerIn: parent; spacing: 4
+                                Label { text: modelData.e; font.pixelSize: 16 }
+                                Label { id: label; text: modelData.w; font.pixelSize: 11 }
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                    Backend.moodLog(modelData.w)
+                                    moodToast.text = "Mood: " + modelData.e + " " + modelData.w
+                                    moodToast.visible = true
+                                    moodToastTimer.restart()
+                                }
+                            }
+                        }
                     }
-                    Button { text: "Log"; onClicked: logMood() }
+                }
+                // Mood toast
+                Label {
+                    id: moodToast
+                    visible: false
+                    text: ""
+                    font.pixelSize: 13
+                    color: Kirigami.Theme.positiveTextColor
+                }
+                Timer {
+                    id: moodToastTimer
+                    interval: 2000
+                    onTriggered: moodToast.visible = false
                 }
 
                 // Mood history (last 10)
@@ -159,9 +204,12 @@ Kirigami.Page {
                 }
                 RowLayout {
                     spacing: 8
-                    TextField {
-                        id: diaryInput; placeholderText: "What happened today?"; Layout.fillWidth: true
-                        onAccepted: addDiary()
+                    TextArea {
+                        id: diaryInput
+                        placeholderText: "What happened today?"
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 60
+                        wrapMode: TextArea.Wrap
                     }
                     Button { text: "Save"; onClicked: addDiary() }
                 }
@@ -250,6 +298,7 @@ Kirigami.Page {
 
                                 ColumnLayout {
                                     spacing: 4
+                                    Layout.alignment: Qt.AlignVCenter
                                     Label {
                                         text: modelData.cost + " 💰"
                                         font.pixelSize: 16; font.bold: true
@@ -257,6 +306,7 @@ Kirigami.Page {
                                     }
                                     Button {
                                         text: "Buy"
+                                        Layout.minimumWidth: 60
                                         enabled: Backend.coins >= modelData.cost
                                         onClicked: {
                                             if (modelData.id === "custom_title") {
@@ -327,7 +377,20 @@ Kirigami.Page {
                         id: bdayName; placeholderText: "Name"; Layout.fillWidth: true
                     }
                     TextField {
-                        id: bdayDate; placeholderText: "MM-DD"; Layout.preferredWidth: 80
+                        id: bdayDate
+                        placeholderText: "DD,MM"
+                        Layout.preferredWidth: 90
+                        onTextChanged: {
+                            // Auto-insert comma after every 2 digits
+                            var raw = text.replace(/,/g, "")
+                            if (raw.length === 4) {
+                                var formatted = raw.substring(0,2) + "," + raw.substring(2,4)
+                                if (text !== formatted) {
+                                    text = formatted
+                                    cursorPosition = 5
+                                }
+                            }
+                        }
                         onAccepted: addBday()
                     }
                     Button { text: "Add"; onClicked: addBday() }
@@ -410,9 +473,6 @@ Kirigami.Page {
     function addDiary() {
         if (diaryInput.text.trim()) { Backend.diaryAdd(diaryInput.text.trim()); diaryInput.text = "" }
     }
-    function logMood() {
-        if (moodInput.text.trim()) { Backend.moodLog(moodInput.text.trim().toLowerCase()); moodInput.text = "" }
-    }
     function refreshArchive() {
         archiveModel.clear()
         var skills = Backend.archivedSkills(archivePerson.currentText)
@@ -429,6 +489,33 @@ Kirigami.Page {
         }
     }
 
+    // Challenge skill models — filtered by person
+    ListModel {
+        id: chalSkillAll
+        Component.onCompleted: {
+            append([{n:"any"},{n:"drawing"},{n:"sewing"},{n:"lefthand"},
+                    {n:"3d-model"},{n:"linux"},{n:"anatomy"},
+                    {n:"dance"},{n:"driving"},{n:"kendama"},
+                    {n:"meditation"},{n:"ferment"},{n:"massage"}])
+        }
+    }
+    ListModel { id: chalSkillRiff;  Component.onCompleted: append([{n:"any"},{n:"drawing"},{n:"sewing"},{n:"lefthand"}]) }
+    ListModel { id: chalSkillReef;  Component.onCompleted: append([{n:"any"},{n:"3d-model"},{n:"linux"},{n:"anatomy"}]) }
+    ListModel { id: chalSkillPitch; Component.onCompleted: append([{n:"any"},{n:"dance"},{n:"driving"},{n:"kendama"}]) }
+    ListModel { id: chalSkillRain;  Component.onCompleted: append([{n:"any"},{n:"meditation"},{n:"ferment"},{n:"massage"}]) }
+
+    function updateChalSkills() {
+        var p = chalPerson.currentText
+        var m
+        if (p === "riff")  m = chalSkillRiff
+        else if (p === "reef")  m = chalSkillReef
+        else if (p === "pitch") m = chalSkillPitch
+        else if (p === "rain")  m = chalSkillRain
+        else m = chalSkillAll
+        chalSkill.model = m
+        chalSkill.currentIndex = 0
+    }
+
     Dialog {
         id: addChalDialog
         title: "Add Challenge"
@@ -437,11 +524,14 @@ Kirigami.Page {
             ComboBox {
                 id: chalPerson
                 model: ["any", "riff", "reef", "pitch", "rain"]
+                textRole: "text"
                 Layout.fillWidth: true
+                onCurrentTextChanged: updateChalSkills()
             }
             ComboBox {
                 id: chalSkill
-                model: ["any", "drawing", "sewing", "lefthand", "3d-model", "linux", "anatomy", "dance", "driving", "kendama", "meditation", "ferment", "massage"]
+                model: chalSkillAll
+                textRole: "n"
                 Layout.fillWidth: true
             }
             RowLayout {

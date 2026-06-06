@@ -213,7 +213,7 @@ Kirigami.Page {
                             anchors.fill: parent
                             onClicked: {
                                 var p = personModel.get(index)
-                                root.pageStack.push(personPageComponent, {
+                                applicationWindow().pageStack.push(personPageComponent, {
                                     personId: p.pid,
                                     personName: p.name,
                                     personRole: p.role,

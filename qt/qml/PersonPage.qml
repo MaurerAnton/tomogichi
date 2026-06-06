@@ -79,7 +79,7 @@ Kirigami.Page {
                         anchors.fill: parent
                         onClicked: {
                             Backend.startTimer(personId, model.name, 30)
-                            root.pageStack.push(timerComponent, {
+                            applicationWindow().pageStack.push(timerComponent, {
                                 personId: personId, personName: personName,
                                 skillName: model.name
                             })
