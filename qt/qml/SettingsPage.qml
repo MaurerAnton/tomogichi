@@ -493,16 +493,16 @@ Kirigami.Page {
     ListModel {
         id: chalSkillAll
         Component.onCompleted: {
-            append([{n:"any"},{n:"drawing"},{n:"sewing"},{n:"lefthand"},
-                    {n:"3d-model"},{n:"linux"},{n:"anatomy"},
-                    {n:"dance"},{n:"driving"},{n:"kendama"},
-                    {n:"meditation"},{n:"ferment"},{n:"massage"}])
+            append({n:"any"}); append({n:"drawing"}); append({n:"sewing"}); append({n:"lefthand"})
+            append({n:"3d-model"}); append({n:"linux"}); append({n:"anatomy"})
+            append({n:"dance"}); append({n:"driving"}); append({n:"kendama"})
+            append({n:"meditation"}); append({n:"ferment"}); append({n:"massage"})
         }
     }
-    ListModel { id: chalSkillRiff;  Component.onCompleted: append([{n:"any"},{n:"drawing"},{n:"sewing"},{n:"lefthand"}]) }
-    ListModel { id: chalSkillReef;  Component.onCompleted: append([{n:"any"},{n:"3d-model"},{n:"linux"},{n:"anatomy"}]) }
-    ListModel { id: chalSkillPitch; Component.onCompleted: append([{n:"any"},{n:"dance"},{n:"driving"},{n:"kendama"}]) }
-    ListModel { id: chalSkillRain;  Component.onCompleted: append([{n:"any"},{n:"meditation"},{n:"ferment"},{n:"massage"}]) }
+    ListModel { id: chalSkillRiff;  Component.onCompleted: { append({n:"any"}); append({n:"drawing"}); append({n:"sewing"}); append({n:"lefthand"}) } }
+    ListModel { id: chalSkillReef;  Component.onCompleted: { append({n:"any"}); append({n:"3d-model"}); append({n:"linux"}); append({n:"anatomy"}) } }
+    ListModel { id: chalSkillPitch; Component.onCompleted: { append({n:"any"}); append({n:"dance"}); append({n:"driving"}); append({n:"kendama"}) } }
+    ListModel { id: chalSkillRain;  Component.onCompleted: { append({n:"any"}); append({n:"meditation"}); append({n:"ferment"}); append({n:"massage"}) } }
 
     function updateChalSkills() {
         var p = chalPerson.currentText
