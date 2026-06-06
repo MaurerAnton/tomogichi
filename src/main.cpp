@@ -1362,7 +1362,7 @@ static void cmd_plan_show(GameState& state) {
             if (s.last_practice > latest) latest = s.last_practice;
         }
         int d = days_since(latest);
-        if (d > 1) {
+        if (latest > 0 && d > 1) {
             std::cout << "    \033[33m→ " << neglected->name << " " << default_skill(neglected->id)
                       << " (" << d << " days idle)\033[0m\n";
         }
@@ -1374,7 +1374,7 @@ static void cmd_plan_show(GameState& state) {
             if (s.last_practice > latest) latest = s.last_practice;
         }
         int d = days_since(latest);
-        if (d > 0 && &p != neglected) {
+        if (latest > 0 && d > 0 && &p != neglected) {
             std::cout << "    " << p.name << " " << default_skill(p.id)
                       << " (" << d << "d)\n";
         }
@@ -1949,21 +1949,23 @@ int main(int argc, char **argv) {
         std::cout << "\033[33m💰 Coins: " << state.master.coins << "\033[0m\n";
     }
 
-    /* Neglect warnings */
+    /* Neglect warnings (skip if never practiced — they're new, not neglected) */
     const Person* neglected = most_neglected(state.persons);
     if (neglected) {
         time_t latest = 0;
         for (const auto& s : neglected->skills) {
             if (s.last_practice > latest) latest = s.last_practice;
         }
-        CharMood mood = char_mood(latest);
-        if (mood >= MOOD_SAD) {
-            std::cout << "\033[31m" << mood_emoji(mood) << " "
-                      << char_message(*neglected, mood) << "\033[0m\n";
-            /* Send desktop notification if available (only if DISPLAY is set) */
-            if (getenv("DISPLAY")) {
-                notify_send(std::string(mood_emoji(mood)) + " " + neglected->name,
-                            char_message(*neglected, mood));
+        if (latest > 0) {
+            CharMood mood = char_mood(latest);
+            if (mood >= MOOD_SAD) {
+                std::cout << "\033[31m" << mood_emoji(mood) << " "
+                          << char_message(*neglected, mood) << "\033[0m\n";
+                /* Send desktop notification if available (only if DISPLAY is set) */
+                if (getenv("DISPLAY")) {
+                    notify_send(std::string(mood_emoji(mood)) + " " + neglected->name,
+                                char_message(*neglected, mood));
+                }
             }
         }
     }

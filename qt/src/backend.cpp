@@ -418,16 +418,18 @@ QVariantMap Backend::todaySummary() const {
     }
     m["openTasks"] = openTasks;
 
-    /* Most neglected character */
+    /* Most neglected character (skip if never practiced — they're new, not neglected) */
     const Person *neglected = most_neglected(m_state.persons);
     if (neglected) {
         time_t latest = 0;
         for (const auto &s : neglected->skills) {
             if (s.last_practice > latest) latest = s.last_practice;
         }
-        m["neglectedName"] = QString::fromStdString(neglected->name);
-        m["neglectedSkill"] = QString::fromStdString(default_skill(neglected->id));
-        m["neglectedDays"] = days_since(latest);
+        if (latest > 0) {
+            m["neglectedName"] = QString::fromStdString(neglected->name);
+            m["neglectedSkill"] = QString::fromStdString(default_skill(neglected->id));
+            m["neglectedDays"] = days_since(latest);
+        }
     }
 
     /* This week total */
