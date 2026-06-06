@@ -242,7 +242,7 @@ std::string default_skill(const std::string& person_id) {
 /* --- Warmth --- */
 
 int days_since(time_t t) {
-    if (t == 0) return 999;
+    if (t == 0) return -1;  /* never practiced */
     time_t now = time(nullptr);
     double diff = difftime(now, t);
     return static_cast<int>(diff / 86400.0);

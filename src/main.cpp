@@ -52,7 +52,7 @@ static void print_line(int width = 60) {
 }
 
 static std::string days_ago_str(int days) {
-    if (days >= 999) return "never";
+    if (days < 0) return "";
     if (days == 0) return "today";
     if (days == 1) return "1 day ago";
     return std::to_string(days) + " days ago";
