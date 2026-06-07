@@ -11,6 +11,14 @@
 #include <strings.h>
 #include <iomanip>
 
+/* --- Helpers --- */
+static std::string repeat(int n, const std::string& s) {
+    std::string r;
+    r.reserve(n * s.size());
+    for (int i = 0; i < n; i++) r += s;
+    return r;
+}
+
 /* --- Config --- */
 static const std::string STATE_PATH = "data/state.json";
 
@@ -1020,7 +1028,7 @@ static void cmd_stats_fx(GameState& state) {
             int pct = (ts.counts[i] * 100) / ts.total;
             int bar = pct / 5;
             std::cout << "    " << eff_names[i] << " "
-                      << std::string(bar, '█') << std::string(20 - bar, ' ')
+                      << repeat(bar, "█") << std::string(20 - bar, ' ')
                       << " " << pct << "%\n";
         }
     }
