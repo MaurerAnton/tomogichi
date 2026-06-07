@@ -7,3 +7,5 @@ qt/build/
 qt/build-aarch64/
 data/state.json
 data/state.json.bak
+data/*.csv
+data/state_*.json
