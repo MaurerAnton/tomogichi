@@ -19,6 +19,14 @@ Kirigami.Page {
 
     Component.onCompleted: refreshHeatmap()
 
+    // Refresh calendar dots when schedules or diary change
+    Connections {
+        target: Backend
+        function onCalendarSlotsChanged() { refreshHeatmap() }
+        function onDiaryChanged() { refreshHeatmap() }
+        function onHistoryChanged() { refreshHeatmap() }
+    }
+
     ScrollView {
         anchors.fill: parent
 
