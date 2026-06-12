@@ -116,21 +116,26 @@ Kirigami.Page {
                         Rectangle {
                             anchors.bottom: parent.bottom; anchors.bottomMargin: 2
                             anchors.horizontalCenter: parent.horizontalCenter
-                            width: 5; height: 5; radius: 2
+                            width: 7; height: 7; radius: 3
                             color: "#FF9800"
                             visible: modelData.hasDiary
                         }
                         // Schedule dot (blue, bottom-left)
                         Rectangle {
                             anchors.bottom: parent.bottom; anchors.bottomMargin: 2
-                            anchors.left: parent.left; anchors.leftMargin: 3
-                            width: 5; height: 5; radius: 2
+                            anchors.left: parent.left; anchors.leftMargin: 2
+                            width: 7; height: 7; radius: 3
                             color: "#2196F3"
                             visible: modelData.hasSchedule
                         }
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
+                                var tip = modelData.day + " " + monthName() + ": " + modelData.minutes + " min"
+                                if (modelData.hasDiary) tip += "\n📓 " + modelData.diaryText.substring(0, 40) + "..."
+                                if (modelData.hasSchedule) tip += "\n📋 Schedules on this day"
+                                dayTooltip.text = tip
+                                dayTooltip.visible = true
                                 calDayDialog.dayNum = modelData.day
                                 calDayDialog.dayLabel = modelData.day + " " + monthName()
                                 calDayDialog.open()
