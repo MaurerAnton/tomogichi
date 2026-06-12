@@ -55,12 +55,28 @@ Kirigami.Page {
                             color: modelData.level > 0 || modelData.isToday ? "white" : Kirigami.Theme.disabledTextColor
                             font.bold: modelData.isToday
                         }
-                        MouseArea { anchors.fill: parent; onClicked: { dayTooltip.text = modelData.day + ": " + modelData.minutes + " min"; dayTooltip.visible = true } }
+                        // Diary dot
+                        Rectangle {
+                            anchors.bottom: parent.bottom; anchors.bottomMargin: 2
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: 5; height: 5; radius: 2
+                            color: "#FF9800"
+                            visible: modelData.hasDiary
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                var tip = modelData.day + ": " + modelData.minutes + " min"
+                                if (modelData.hasDiary) tip += "\n📓 " + modelData.diaryText
+                                dayTooltip.text = tip
+                                dayTooltip.visible = true
+                            }
+                        }
                     }
                 }
             }
 
-            Label { id: dayTooltip; visible: false; font.pixelSize: 11; color: Kirigami.Theme.disabledTextColor }
+            Label { id: dayTooltip; visible: false; font.pixelSize: 11; color: Kirigami.Theme.disabledTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
 
             RowLayout {
                 spacing: 4

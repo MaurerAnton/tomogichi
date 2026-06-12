@@ -749,6 +749,18 @@ QVariantList Backend::monthlyHeatmap() const {
         }
     }
 
+    /* Find diary entries per day */
+    int dayDiaryIdx[32] = {};
+    for (int i = 0; i < 32; i++) dayDiaryIdx[i] = -1;
+    for (int i = 0; i < (int)m_state.master.diary_log.size(); i++) {
+        struct tm dtm;
+        time_t t = m_state.master.diary_log[i].timestamp;
+        localtime_r(&t, &dtm);
+        if (dtm.tm_year + 1900 == year && dtm.tm_mon + 1 == month) {
+            if (dayDiaryIdx[dtm.tm_mday] == -1) dayDiaryIdx[dtm.tm_mday] = i;
+        }
+    }
+
     /* Find first weekday */
     struct tm first_tm = tm;
     first_tm.tm_mday = 1;
@@ -765,6 +777,11 @@ QVariantList Backend::monthlyHeatmap() const {
         else if (mins < 90) m["level"] = 2;
         else m["level"] = 3;
         m["minutes"] = mins;
+        int di = dayDiaryIdx[d];
+        m["hasDiary"] = (di >= 0);
+        if (di >= 0) {
+            m["diaryText"] = QString::fromStdString(m_state.master.diary_log[di].text);
+        }
         m["isToday"] = (d == tm.tm_mday);
         list.append(m);
     }
