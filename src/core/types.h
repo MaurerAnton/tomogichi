@@ -69,6 +69,7 @@ struct CalendarSlot {
     std::string person_id;
     std::string skill_name;
     std::string label;
+    std::string date;        /* \"DD.MM\" for specific-date events, empty = day_of_week recurring */
 };
 
 struct Challenge {

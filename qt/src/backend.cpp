@@ -357,12 +357,24 @@ void Backend::dailyTodoDelete(int index) {
 
 QVariantList Backend::calendarSlots() const {
     QVariantList list;
-    for (const auto &cs : m_state.master.calendar) {
+    for (int i = 0; i < (int)m_state.master.calendar.size(); i++) {
+        const auto &cs = m_state.master.calendar[i];
         QVariantMap m;
+        m["index"] = i;
         m["dayOfWeek"] = cs.day_of_week;
         m["hour"] = cs.hour;
         m["minute"] = cs.minute;
         m["label"] = QString::fromStdString(cs.label);
+        m["date"] = QString::fromStdString(cs.date);
+        QString desc;
+        QString qdate = QString::fromStdString(cs.date);
+        if (!cs.date.empty()) {
+            desc = qdate + " " + QString::number(cs.hour).rightJustified(2,'0') + ":" + QString::number(cs.minute).rightJustified(2,'0') + " " + QString::fromStdString(cs.label);
+        } else {
+            const char* days[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+            desc = QString(days[cs.day_of_week]) + " " + QString::number(cs.hour).rightJustified(2,'0') + ":" + QString::number(cs.minute).rightJustified(2,'0') + " " + QString::fromStdString(cs.label);
+        }
+        m["desc"] = desc;
         list.append(m);
     }
     return list;
@@ -380,9 +392,36 @@ void Backend::calendarAdd(int dayOfWeek, int hour, int minute, const QString &la
     emit calendarSlotsChanged();
 }
 
+void Backend::calendarAddDate(int day, int month, int hour, int minute, const QString &label) {
+    CalendarSlot cs;
+    cs.day_of_week = 0;
+    cs.hour = hour;
+    cs.minute = minute;
+    cs.person_id = "master";
+    cs.label = label.toStdString();
+    char buf[8];
+    snprintf(buf, sizeof(buf), "%02d.%02d", day, month);
+    cs.date = buf;
+    m_state.master.calendar.push_back(cs);
+    saveState();
+    emit calendarSlotsChanged();
+}
+
 void Backend::calendarDelete(int index) {
     if (index < 0 || index >= (int)m_state.master.calendar.size()) return;
     m_state.master.calendar.erase(m_state.master.calendar.begin() + index);
+    saveState();
+    emit calendarSlotsChanged();
+}
+
+void Backend::calendarEdit(int index, int dayOfWeek, int hour, int minute, const QString &label, const QString &date) {
+    if (index < 0 || index >= (int)m_state.master.calendar.size()) return;
+    auto &cs = m_state.master.calendar[index];
+    cs.day_of_week = dayOfWeek;
+    cs.hour = hour;
+    cs.minute = minute;
+    cs.label = label.toStdString();
+    cs.date = date.toStdString();
     saveState();
     emit calendarSlotsChanged();
 }
@@ -723,12 +762,14 @@ void Backend::diaryAddComment(int index, const QString &text) {
 }
 
 QVariantList Backend::monthlyHeatmap() const {
-    QVariantList list;
     time_t now = time(nullptr);
     struct tm tm;
     localtime_r(&now, &tm);
-    int year = tm.tm_year + 1900;
-    int month = tm.tm_mon + 1;
+    return monthlyHeatmapFor(tm.tm_year + 1900, tm.tm_mon + 1);
+}
+
+QVariantList Backend::monthlyHeatmapFor(int year, int month) const {
+    QVariantList list;
 
     /* Days in month */
     int dim = 31;
@@ -761,11 +802,42 @@ QVariantList Backend::monthlyHeatmap() const {
         }
     }
 
+    /* Find schedule entries per day */
+    bool dayHasSchedule[32] = {};
+    for (const auto &cs : m_state.master.calendar) {
+        if (!cs.date.empty()) {
+            int d = 0, m = 0;
+            if (sscanf(cs.date.c_str(), "%d.%d", &d, &m) == 2 && m == month && d >= 1 && d <= dim) {
+                dayHasSchedule[d] = true;
+            }
+        }
+        // Recurring day-of-week: check each day of month
+        if (cs.date.empty()) {
+            struct tm first = {};
+            first.tm_year = year - 1900;
+            first.tm_mon = month - 1;
+            first.tm_mday = 1;
+            mktime(&first);
+            for (int d = 1; d <= dim; d++) {
+                if ((first.tm_wday + d - 1) % 7 == cs.day_of_week) {
+                    dayHasSchedule[d] = true;
+                }
+            }
+        }
+    }
+
     /* Find first weekday */
-    struct tm first_tm = tm;
+    struct tm first_tm = {};
+    first_tm.tm_year = year - 1900;
+    first_tm.tm_mon = month - 1;
     first_tm.tm_mday = 1;
     mktime(&first_tm);
     int firstDow = first_tm.tm_wday;
+
+    time_t now = time(nullptr);
+    struct tm now_tm;
+    localtime_r(&now, &now_tm);
+    bool isCurrentMonth = (now_tm.tm_year + 1900 == year && now_tm.tm_mon + 1 == month);
 
     for (int d = 1; d <= dim; d++) {
         QVariantMap m;
@@ -782,7 +854,8 @@ QVariantList Backend::monthlyHeatmap() const {
         if (di >= 0) {
             m["diaryText"] = QString::fromStdString(m_state.master.diary_log[di].text);
         }
-        m["isToday"] = (d == tm.tm_mday);
+        m["hasSchedule"] = dayHasSchedule[d];
+        m["isToday"] = (isCurrentMonth && d == now_tm.tm_mday);
         list.append(m);
     }
     return list;

@@ -165,6 +165,7 @@ bool load_state(const std::string& path, GameState& state) {
                     cs.person_id = jc.value("person", "master");
                     cs.skill_name = jc.value("skill", "");
                     cs.label = jc.value("label", "");
+                    cs.date = jc.value("date", "");
                     state.master.calendar.push_back(cs);
                 }
             }
@@ -374,6 +375,7 @@ bool save_state(const std::string& path, const GameState& state) {
         jc["person"] = cs.person_id;
         jc["skill"] = cs.skill_name;
         jc["label"] = cs.label;
+        if (!cs.date.empty()) jc["date"] = cs.date;
         jm["calendar"].push_back(jc);
     }
 

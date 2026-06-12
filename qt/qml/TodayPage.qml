@@ -7,6 +7,17 @@ Kirigami.Page {
     id: todayPage
     title: "Today"
     property int todayDow: new Date().getDay()
+    property int viewMonth: new Date().getMonth() + 1
+    property int viewYear: new Date().getFullYear()
+    property int todayDay: new Date().getDate()
+    property int todayMonth: viewMonth
+    property int todayYear: viewYear
+
+    function refreshHeatmap() {
+        heatmapRepeater.model = Backend.monthlyHeatmapFor(viewYear, viewMonth)
+    }
+
+    Component.onCompleted: refreshHeatmap()
 
     ScrollView {
         anchors.fill: parent
@@ -16,7 +27,43 @@ Kirigami.Page {
             anchors.margins: 16
             spacing: 12
 
-            Kirigami.Heading { text: "📅 " + monthName(); level: 3 }
+            // Month navigation
+            RowLayout {
+                Layout.fillWidth: true
+                Label {
+                    text: "←"
+                    font.pixelSize: 22
+                    color: Kirigami.Theme.highlightColor
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            if (viewMonth === 1) { viewMonth = 12; viewYear-- }
+                            else viewMonth--
+                            refreshHeatmap()
+                        }
+                    }
+                }
+                Kirigami.Heading {
+                    text: monthName() + " " + viewYear
+                    level: 3
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                }
+                Label {
+                    text: "→"
+                    font.pixelSize: 22
+                    color: viewMonth === todayMonth && viewYear === todayYear ? Kirigami.Theme.disabledTextColor : Kirigami.Theme.highlightColor
+                    MouseArea {
+                        anchors.fill: parent
+                        enabled: !(viewMonth === todayMonth && viewYear === todayYear)
+                        onClicked: {
+                            if (viewMonth === 12) { viewMonth = 1; viewYear++ }
+                            else viewMonth++
+                            refreshHeatmap()
+                        }
+                    }
+                }
+            }
 
             // Calendar heatmap grid
             GridLayout {
@@ -32,9 +79,14 @@ Kirigami.Page {
                     }
                 }
 
-                // Offset cells for first day
+                // Offset cells for first day (Monday=0)
                 Repeater {
-                    model: Backend.monthlyHeatmap.length > 0 ? Backend.monthlyHeatmap[0].dow : 0
+                    id: offsetRepeater
+                    model: {
+                        var first = heatmapRepeater.count > 0 ? heatmapRepeater.model[0].dow : 0
+                        // Convert Sunday=0 to Monday=0 system
+                        return first === 0 ? 6 : first - 1
+                    }
                     delegate: Item {
                         Layout.preferredWidth: 28
                         Layout.preferredHeight: 1
@@ -42,7 +94,8 @@ Kirigami.Page {
                 }
 
                 Repeater {
-                    model: Backend.monthlyHeatmap
+                    id: heatmapRepeater
+                    model: []
                     delegate: Rectangle {
                         Layout.preferredWidth: 28; Layout.preferredHeight: 28; radius: 4
                         color: modelData.isToday ? Kirigami.Theme.highlightColor :
@@ -55,7 +108,7 @@ Kirigami.Page {
                             color: modelData.level > 0 || modelData.isToday ? "white" : Kirigami.Theme.disabledTextColor
                             font.bold: modelData.isToday
                         }
-                        // Diary dot
+                        // Diary dot (orange, bottom-center)
                         Rectangle {
                             anchors.bottom: parent.bottom; anchors.bottomMargin: 2
                             anchors.horizontalCenter: parent.horizontalCenter
@@ -63,25 +116,39 @@ Kirigami.Page {
                             color: "#FF9800"
                             visible: modelData.hasDiary
                         }
+                        // Schedule dot (blue, bottom-left)
+                        Rectangle {
+                            anchors.bottom: parent.bottom; anchors.bottomMargin: 2
+                            anchors.left: parent.left; anchors.leftMargin: 3
+                            width: 5; height: 5; radius: 2
+                            color: "#2196F3"
+                            visible: modelData.hasSchedule
+                        }
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
-                                var tip = modelData.day + ": " + modelData.minutes + " min"
-                                if (modelData.hasDiary) tip += "\n📓 " + modelData.diaryText
-                                dayTooltip.text = tip
-                                dayTooltip.visible = true
+                                calDayDialog.dayNum = modelData.day
+                                calDayDialog.dayLabel = modelData.day + " " + monthName()
+                                calDayDialog.open()
                             }
                         }
                     }
                 }
             }
 
-            Label { id: dayTooltip; visible: false; font.pixelSize: 11; color: Kirigami.Theme.disabledTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+            Label {
+                id: dayTooltip
+                visible: false
+                font.pixelSize: 11
+                color: Kirigami.Theme.disabledTextColor
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
 
             RowLayout {
                 spacing: 4
                 Repeater {
-                    model: [{c:Qt.rgba(0.5,0.5,0.5,0.1),t:"0"},{c:"#81C784",t:"<30m"},{c:"#4CAF50",t:"<90m"},{c:"#2E7D32",t:"90m+"}]
+                    model: [{c:Qt.rgba(0.5,0.5,0.5,0.1),t:"0"},{c:"#81C784",t:"<30m"},{c:"#4CAF50",t:"<90m"},{c:"#2E7D32",t:"90m+"},{c:"#FF9800",t:"diary"},{c:"#2196F3",t:"sched"}]
                     delegate: RowLayout { spacing: 2
                         Rectangle { width:12; height:12; radius:2; color: modelData.c }
                         Label { text: modelData.t; font.pixelSize: 9; color: Kirigami.Theme.disabledTextColor }
@@ -90,20 +157,61 @@ Kirigami.Page {
             }
 
             Kirigami.Separator { Layout.fillWidth: true }
-            Kirigami.Heading { text: "Schedule"; level: 3 }
+            Kirigami.Heading { text: "📋 Schedules"; level: 3 }
 
+            // Schedule list
             Repeater {
                 model: Backend.calendarSlots
                 delegate: RowLayout {
-                    visible: modelData.dayOfWeek === todayDow
-                    spacing: 8
-                    Rectangle { width: 4; height: 24; radius: 2; color: Kirigami.Theme.highlightColor }
-                    Label { text: pad2(modelData.hour) + ":" + pad2(modelData.minute); font.pixelSize: 14; font.bold: true; font.family: "monospace" }
-                    Label { text: modelData.label; font.pixelSize: 14 }
+                    spacing: 6
+                    Layout.fillWidth: true
+                    Rectangle {
+                        width: 6; height: 24; radius: 3
+                        color: modelData.date ? "#2196F3" :
+                               modelData.dayOfWeek === todayDow ? Kirigami.Theme.highlightColor : Qt.rgba(0.5,0.5,0.5,0.3)
+                    }
+                    Label {
+                        text: modelData.desc
+                        font.pixelSize: 13
+                        Layout.fillWidth: true
+                        elide: Text.ElideRight
+                    }
+                    Label {
+                        text: "✎"
+                        font.pixelSize: 14
+                        color: Kirigami.Theme.highlightColor
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                editDialog.editIndex = modelData.index
+                                editDialog.oldLabel = modelData.label
+                                editDialog.oldHour = modelData.hour
+                                editDialog.oldMin = modelData.minute
+                                editDialog.oldDate = modelData.date || ""
+                                editDayCombo.currentIndex = modelData.dayOfWeek
+                                editDialog.open()
+                            }
+                        }
+                    }
+                    Label {
+                        text: "✕"
+                        font.pixelSize: 14
+                        color: "#EF5350"
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: Backend.calendarDelete(modelData.index)
+                        }
+                    }
                 }
             }
 
-            Button { text: "+ Add Schedule"; Layout.fillWidth: true; flat: true; onClicked: calDialog.open() }
+            // Add schedule button
+            Button {
+                text: "+ Add Schedule"
+                Layout.fillWidth: true
+                flat: true
+                onClicked: calDialog.open()
+            }
 
             Kirigami.Separator { Layout.fillWidth: true }
             Kirigami.Heading { text: "☑ Daily Tasks"; level: 3 }
@@ -164,7 +272,7 @@ Kirigami.Page {
     function pad2(n) { return ("0" + n).slice(-2) }
     function monthName() {
         var m = ["January","February","March","April","May","June","July","August","September","October","November","December"]
-        return m[new Date().getMonth()]
+        return m[viewMonth - 1]
     }
     function getRec() {
         var s = Backend.todaySummary()
@@ -189,6 +297,7 @@ Kirigami.Page {
         return done
     }
 
+    // Dialog: Add Schedule (generic, day-of-week recurring)
     Dialog {
         id: calDialog
         title: "Add Schedule"
@@ -219,6 +328,75 @@ Kirigami.Page {
             calHour.text = ""
             calMin.text = ""
             calLabel.text = ""
+        }
+    }
+
+    // Dialog: Add Schedule for specific day (from calendar tap)
+    Dialog {
+        id: calDayDialog
+        title: "Add Schedule"
+        property int dayNum: 1
+        property string dayLabel: ""
+        ColumnLayout {
+            spacing: 8
+            width: 280
+            Label {
+                text: calDayDialog.dayLabel
+                font.pixelSize: 16
+                font.bold: true
+                Layout.alignment: Qt.AlignHCenter
+            }
+            RowLayout {
+                Label { text: "Time:" }
+                TextField { id: calDayHour; placeholderText: "HH"; Layout.preferredWidth: 50; inputMethodHints: Qt.ImhDigitsOnly }
+                Label { text: ":" }
+                TextField { id: calDayMin; placeholderText: "MM"; Layout.preferredWidth: 50; inputMethodHints: Qt.ImhDigitsOnly }
+            }
+            TextField { id: calDayLabel; placeholderText: "Label"; Layout.fillWidth: true }
+        }
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        onAccepted: {
+            var h = parseInt(calDayHour.text) || 9
+            var m = parseInt(calDayMin.text) || 0
+            Backend.calendarAddDate(calDayDialog.dayNum, viewMonth, h, m, calDayLabel.text || "Event")
+            calDayHour.text = ""
+            calDayMin.text = ""
+            calDayLabel.text = ""
+        }
+    }
+
+    // Dialog: Edit Schedule
+    Dialog {
+        id: editDialog
+        title: "Edit Schedule"
+        property int editIndex: 0
+        property string oldLabel: ""
+        property int oldHour: 9
+        property int oldMin: 0
+        property string oldDate: ""
+        ColumnLayout {
+            spacing: 8
+            width: 280
+            RowLayout {
+                Label { text: "Day:" }
+                ComboBox {
+                    id: editDayCombo
+                    model: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
+                }
+            }
+            RowLayout {
+                Label { text: "Time:" }
+                TextField { id: editHour; placeholderText: "HH"; Layout.preferredWidth: 50; text: editDialog.oldHour; inputMethodHints: Qt.ImhDigitsOnly }
+                Label { text: ":" }
+                TextField { id: editMin; placeholderText: "MM"; Layout.preferredWidth: 50; text: editDialog.oldMin; inputMethodHints: Qt.ImhDigitsOnly }
+            }
+            TextField { id: editLabel; placeholderText: "Label"; Layout.fillWidth: true; text: editDialog.oldLabel }
+        }
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        onAccepted: {
+            var h = parseInt(editHour.text) || 9
+            var m = parseInt(editMin.text) || 0
+            Backend.calendarEdit(editDialog.editIndex, editDayCombo.currentIndex, h, m, editLabel.text || "Event", editDialog.oldDate)
         }
     }
 }

@@ -75,7 +75,8 @@ public:
     QVariantList practiceHistory() const;
     QVariantList diaryLog() const;
     QVariantList allDiaryEntries() const;
-    QVariantList monthlyHeatmap() const;
+    Q_INVOKABLE QVariantList monthlyHeatmap() const;
+    Q_INVOKABLE QVariantList monthlyHeatmapFor(int year, int month) const;
     QVariantList shopItems() const;
     QVariantList birthdays() const;
     QVariantList weeklyPie() const;
@@ -116,7 +117,9 @@ public slots:
 
     /* Calendar actions */
     void calendarAdd(int dayOfWeek, int hour, int minute, const QString &label);
+    void calendarAddDate(int day, int month, int hour, int minute, const QString &label);
     void calendarDelete(int index);
+    void calendarEdit(int index, int dayOfWeek, int hour, int minute, const QString &label, const QString &date);
 
     /* Save state */
     bool saveState();
