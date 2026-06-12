@@ -192,7 +192,7 @@ Kirigami.Page {
                 // Diary
                 Label { text: "Diary"; font.pixelSize: 13; font.bold: true; color: Kirigami.Theme.highlightColor }
                 ScrollView {
-                    Layout.fillWidth: true; Layout.preferredHeight: 120
+                    Layout.fillWidth: true; Layout.fillHeight: true
                     ListView {
                         model: Backend.diaryLog; spacing: 6
                         delegate: ColumnLayout {
@@ -202,17 +202,16 @@ Kirigami.Page {
                         }
                     }
                 }
-                RowLayout {
-                    spacing: 8
-                    TextArea {
-                        id: diaryInput
-                        placeholderText: "What happened today?"
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 80
-                        wrapMode: TextArea.Wrap
-                    }
-                    Button { text: "Save"; onClicked: addDiary() }
+                TextArea {
+                    id: diaryInput
+                    placeholderText: "What happened today?"
+                    Layout.fillWidth: true
+                    Layout.maximumHeight: 200
+                    Layout.preferredHeight: Math.max(48, Math.min(diaryInput.implicitHeight, 200))
+                    wrapMode: TextArea.Wrap
+                    onTextChanged: diaryInput.Layout.preferredHeight = Math.max(48, Math.min(diaryInput.implicitHeight, 200))
                 }
+                Button { text: "Save"; Layout.alignment: Qt.AlignRight; onClicked: addDiary() }
             }
 
             // 3: Archive
