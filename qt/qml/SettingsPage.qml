@@ -202,19 +202,24 @@ Kirigami.Page {
                         }
                     }
                 }
-                TextArea {
-                    id: diaryInput
-                    placeholderText: "What happened today?"
+                ScrollView {
+                    id: diaryScroll
                     Layout.fillWidth: true
-                    Layout.maximumHeight: 200
                     Layout.preferredHeight: 48
-                    wrapMode: TextArea.Wrap
-                    onTextChanged: heightTimer.restart()
+                    Layout.maximumHeight: 200
+                    ScrollBar.vertical.policy: ScrollBar.AsNeeded
+                    TextArea {
+                        id: diaryInput
+                        width: parent.width
+                        placeholderText: "What happened today?"
+                        wrapMode: TextArea.Wrap
+                        onTextChanged: heightTimer.restart()
+                    }
                 }
                 Timer {
                     id: heightTimer
                     interval: 0
-                    onTriggered: diaryInput.Layout.preferredHeight = Math.max(48, Math.min(diaryInput.contentHeight + 12, 200))
+                    onTriggered: diaryScroll.Layout.preferredHeight = Math.max(48, Math.min(diaryInput.contentHeight + 16, 200))
                 }
                 Button { text: "Save"; Layout.alignment: Qt.AlignRight; onClicked: addDiary() }
             }
