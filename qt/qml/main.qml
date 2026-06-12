@@ -104,6 +104,7 @@ Kirigami.ApplicationWindow {
     Component { id: todayPage; TodayPage {} }
     Component { id: statsPage; StatsPage {} }
     Component { id: settingsPage; SettingsPage {} }
+    Component { id: diaryFullPage; DiaryPage {} }
 
     // Effect picker — shown after timer stop
     Loader {

@@ -32,6 +32,7 @@ class Backend : public QObject {
     Q_PROPERTY(int teamSync READ teamSync NOTIFY entropyChanged)
     Q_PROPERTY(QVariantList practiceHistory READ practiceHistory NOTIFY historyChanged)
     Q_PROPERTY(QVariantList diaryLog READ diaryLog NOTIFY diaryChanged)
+    Q_PROPERTY(QVariantList allDiaryEntries READ allDiaryEntries NOTIFY diaryChanged)
     Q_PROPERTY(QVariantList monthlyHeatmap READ monthlyHeatmap NOTIFY historyChanged)
     Q_PROPERTY(QVariantList shopItems READ shopItems CONSTANT)
     Q_PROPERTY(QVariantList birthdays READ birthdays NOTIFY birthdaysChanged)
@@ -73,6 +74,7 @@ public:
     int teamSync() const;
     QVariantList practiceHistory() const;
     QVariantList diaryLog() const;
+    QVariantList allDiaryEntries() const;
     QVariantList monthlyHeatmap() const;
     QVariantList shopItems() const;
     QVariantList birthdays() const;
@@ -145,6 +147,7 @@ public slots:
 
     /* Diary */
     void diaryAdd(const QString &text);
+    void diaryAddComment(int index, const QString &text);
 
     /* Archived skills for a person */
     Q_INVOKABLE QVariantList archivedSkills(const QString &personId);

@@ -58,6 +58,7 @@ qt_add_qml_module(tomogichi-qt
         qml/StatsPage.qml
         qml/TodayPage.qml
         qml/SettingsPage.qml
+        qml/DiaryPage.qml
 )
 
 # Install

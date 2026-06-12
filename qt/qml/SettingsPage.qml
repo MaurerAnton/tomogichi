@@ -190,7 +190,18 @@ Kirigami.Page {
                 Kirigami.Separator { Layout.fillWidth: true }
 
                 // Diary
-                Label { text: "Diary"; font.pixelSize: 13; font.bold: true; color: Kirigami.Theme.highlightColor }
+                RowLayout {
+                    Label { text: "Diary"; font.pixelSize: 13; font.bold: true; color: Kirigami.Theme.highlightColor; Layout.fillWidth: true }
+                    Label {
+                        text: "View All →"
+                        font.pixelSize: 12
+                        color: Kirigami.Theme.highlightColor
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: applicationWindow().pageStack.push("qrc:/org/tomogichi/qt/qml/DiaryPage.qml")
+                        }
+                    }
+                }
                 ScrollView {
                     Layout.fillWidth: true; Layout.fillHeight: true
                     ListView {

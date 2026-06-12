@@ -240,6 +240,14 @@ bool load_state(const std::string& path, GameState& state) {
                     DiaryEntry de;
                     de.text = jd.value("text", "");
                     de.timestamp = iso_to_time(jd.value("time", ""));
+                    if (jd.contains("comments") && jd["comments"].is_array()) {
+                        for (const auto& jc : jd["comments"]) {
+                            DiaryComment dc;
+                            dc.text = jc.value("text", "");
+                            dc.timestamp = iso_to_time(jc.value("time", ""));
+                            de.comments.push_back(dc);
+                        }
+                    }
                     state.master.diary_log.push_back(de);
                 }
             }
@@ -425,6 +433,15 @@ bool save_state(const std::string& path, const GameState& state) {
         json jd;
         jd["text"] = de.text;
         jd["time"] = time_to_iso(de.timestamp);
+        if (!de.comments.empty()) {
+            jd["comments"] = json::array();
+            for (const auto& dc : de.comments) {
+                json jc;
+                jc["text"] = dc.text;
+                jc["time"] = time_to_iso(dc.timestamp);
+                jd["comments"].push_back(jc);
+            }
+        }
         jm["diary_log"].push_back(jd);
     }
 

@@ -677,6 +677,51 @@ void Backend::diaryAdd(const QString &text) {
     emit diaryChanged();
 }
 
+QVariantList Backend::allDiaryEntries() const {
+    QVariantList list;
+    for (int i = (int)m_state.master.diary_log.size() - 1; i >= 0; i--) {
+        const auto& de = m_state.master.diary_log[i];
+        QVariantMap m;
+        m["index"] = i;
+        m["text"] = QString::fromStdString(de.text);
+        char dbuf[32];
+        struct tm tm;
+        time_t t = de.timestamp;
+        localtime_r(&t, &tm);
+        strftime(dbuf, sizeof(dbuf), "%d %b %Y %H:%M", &tm);
+        m["dateStr"] = QString(dbuf);
+        // Group key for section headers (date only)
+        char dateKey[16];
+        strftime(dateKey, sizeof(dateKey), "%d %b %Y", &tm);
+        m["dateKey"] = QString(dateKey);
+        // Comments
+        QVariantList comments;
+        for (const auto& dc : de.comments) {
+            QVariantMap cm;
+            cm["text"] = QString::fromStdString(dc.text);
+            time_t ct = dc.timestamp;
+            struct tm ctm;
+            localtime_r(&ct, &ctm);
+            strftime(dbuf, sizeof(dbuf), "%H:%M", &ctm);
+            cm["timeStr"] = QString(dbuf);
+            comments.append(cm);
+        }
+        m["comments"] = comments;
+        list.append(m);
+    }
+    return list;
+}
+
+void Backend::diaryAddComment(int index, const QString &text) {
+    if (index < 0 || index >= (int)m_state.master.diary_log.size()) return;
+    DiaryComment dc;
+    dc.text = text.toStdString();
+    dc.timestamp = time(nullptr);
+    m_state.master.diary_log[index].comments.push_back(dc);
+    saveState();
+    emit diaryChanged();
+}
+
 QVariantList Backend::monthlyHeatmap() const {
     QVariantList list;
     time_t now = time(nullptr);

@@ -105,9 +105,15 @@ struct MoodEntry {
     time_t timestamp;
 };
 
+struct DiaryComment {
+    std::string text;
+    time_t timestamp;
+};
+
 struct DiaryEntry {
     std::string text;
     time_t timestamp;
+    std::vector<DiaryComment> comments;
 };
 
 struct MasterState {
