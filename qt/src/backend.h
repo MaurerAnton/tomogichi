@@ -41,6 +41,7 @@ class Backend : public QObject {
     Q_PROPERTY(int totalPracticeXP READ totalPracticeXP NOTIFY historyChanged)
     Q_PROPERTY(int totalSessions READ totalSessions NOTIFY historyChanged)
     Q_PROPERTY(bool onboardingSeen READ onboardingSeen NOTIFY boostChanged)
+    Q_PROPERTY(int theme READ theme NOTIFY boostChanged)
     Q_PROPERTY(QVariantList moodHistory READ moodHistory NOTIFY moodChanged)
 
 public:
@@ -82,6 +83,8 @@ public:
     int totalPracticeXP() const;
     int totalSessions() const;
     bool onboardingSeen() const;
+    int theme() const;
+    Q_INVOKABLE void setTheme(int t);
     Q_INVOKABLE void markOnboardingSeen();
 
     /* Compute today's summary */

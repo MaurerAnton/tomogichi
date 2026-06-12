@@ -418,11 +418,12 @@ Kirigami.Page {
                     ComboBox {
                         id: themePicker
                         model: ["System", "Light", "Dark"]
-                        currentIndex: 0
+                        currentIndex: Backend.theme
                         onCurrentIndexChanged: {
                             if (currentIndex === 1) Kirigami.Theme.colorSet = Kirigami.Theme.Light
                             else if (currentIndex === 2) Kirigami.Theme.colorSet = Kirigami.Theme.Dark
                             else Kirigami.Theme.colorSet = Kirigami.Theme.Window
+                            Backend.setTheme(currentIndex)
                         }
                     }
                 }

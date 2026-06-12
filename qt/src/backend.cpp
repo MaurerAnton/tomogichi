@@ -621,6 +621,15 @@ void Backend::markOnboardingSeen() {
     emit boostChanged();
 }
 
+int Backend::theme() const { return m_state.master.theme; }
+void Backend::setTheme(int t) {
+    if (t != m_state.master.theme) {
+        m_state.master.theme = t;
+        saveState();
+        emit boostChanged();
+    }
+}
+
 QVariantList Backend::moodHistory() const {
     QVariantList list;
     int count = 0;

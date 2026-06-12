@@ -129,6 +129,7 @@ struct MasterState {
     bool xp_boost;           /* shop item: +50% XP on next practice */
     bool coins_double;       /* shop item: double coins from next challenge */
     bool onboarding_seen;    /* don't show welcome screen again */
+    int theme;               /* 0=system, 1=light, 2=dark */
 };
 
 #endif /* TOMOGICHI_TYPES_H */

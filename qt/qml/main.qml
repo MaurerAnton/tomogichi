@@ -11,6 +11,13 @@ Kirigami.ApplicationWindow {
 
     pageStack.initialPage: guildPage
 
+    // Apply saved theme on startup
+    Component.onCompleted: {
+        if (Backend.theme === 1) Kirigami.Theme.colorSet = Kirigami.Theme.Light
+        else if (Backend.theme === 2) Kirigami.Theme.colorSet = Kirigami.Theme.Dark
+        else Kirigami.Theme.colorSet = Kirigami.Theme.Window
+    }
+
     // Timer indicator chip
     Rectangle {
         anchors.right: parent.right

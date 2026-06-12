@@ -141,6 +141,7 @@ bool load_state(const std::string& path, GameState& state) {
             state.master.xp_boost = jm.value("xp_boost", false);
             state.master.coins_double = jm.value("coins_double", false);
             state.master.onboarding_seen = jm.value("onboarding_seen", false);
+            state.master.theme = jm.value("theme", 0);
 
             /* Daily todos */
             if (jm.contains("daily_todos")) {
@@ -344,6 +345,7 @@ bool save_state(const std::string& path, const GameState& state) {
     jm["xp_boost"] = state.master.xp_boost;
     jm["coins_double"] = state.master.coins_double;
     jm["onboarding_seen"] = state.master.onboarding_seen;
+    jm["theme"] = state.master.theme;
 
     /* Daily todos */
     jm["daily_todos"] = json::array();
@@ -478,6 +480,7 @@ GameState default_state() {
     state.master.next_task_id = 1;
     state.master.coins = 0;
     state.master.daily_reset = 0;
+    state.master.theme = 0;    /* 0=system, 1=light, 2=dark */
     return state;
 }
 

@@ -761,19 +761,6 @@ static void cmd_calendar_show(const MasterState& master) {
         dim = 30;
     }
 
-    /* Collect which days have calendar entries */
-    bool has_entry[32] = {};
-    for (const auto& cs : master.calendar) {
-        /* Count as having entry on day-of-week */
-        /* For monthly view, we mark all matching weekdays */
-        for (int d = 1; d <= dim; d++) {
-            int day_dow = (first_dow + d - 1) % 7;
-            if (cs.day_of_week == day_dow) {
-                has_entry[d] = true;
-            }
-        }
-    }
-
     std::cout << "\n\033[1;36m═════ " << MONTH_NAMES[month] << " " << year << " ═════\033[0m\n\n";
 
     /* Header */
@@ -1000,8 +987,6 @@ static void cmd_stats_fx(GameState& state) {
 
     const char* eff_names[] = {"\033[32menergized\033[0m", "neutral",
                                 "\033[31mtired\033[0m", "\033[90mdrained\033[0m"};
-    const char* eff_chars[] = {"█", "▒", "░", "·"};
-
     /* 1. Per-skill effect bars */
     std::cout << "  \033[1mPer-Skill Effect Distribution\033[0m\n";
     for (const auto& ss : skill_stats) {
@@ -1391,7 +1376,6 @@ static void cmd_plan_show(GameState& state) {
     /* Mood today */
     if (!state.master.mood_log.empty()) {
         const auto& last_mood = state.master.mood_log.back();
-        char mb[16];
         struct tm mtm;
         localtime_r(&last_mood.timestamp, &mtm);
         if (mtm.tm_year == tm.tm_year && mtm.tm_mon == tm.tm_mon
