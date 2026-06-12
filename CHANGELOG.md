@@ -127,3 +127,4 @@
 - Custom Title sets "★ Custom ★" (not user-input)
 - No aarch64 cross-compilation yet
 - No Flatpak packaging
+
