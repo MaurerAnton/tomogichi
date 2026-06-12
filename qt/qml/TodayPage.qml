@@ -30,17 +30,14 @@ Kirigami.Page {
             // Month navigation
             RowLayout {
                 Layout.fillWidth: true
-                Label {
+                Button {
                     text: "←"
-                    font.pixelSize: 22
-                    color: Kirigami.Theme.highlightColor
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            if (viewMonth === 1) { viewMonth = 12; viewYear-- }
-                            else viewMonth--
-                            refreshHeatmap()
-                        }
+                    flat: true
+                    font.pixelSize: 18
+                    onClicked: {
+                        if (viewMonth === 1) { viewMonth = 12; viewYear-- }
+                        else viewMonth--
+                        refreshHeatmap()
                     }
                 }
                 Kirigami.Heading {
@@ -49,18 +46,25 @@ Kirigami.Page {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
                 }
-                Label {
+                Button {
                     text: "→"
-                    font.pixelSize: 22
-                    color: viewMonth === todayMonth && viewYear === todayYear ? Kirigami.Theme.disabledTextColor : Kirigami.Theme.highlightColor
-                    MouseArea {
-                        anchors.fill: parent
-                        enabled: !(viewMonth === todayMonth && viewYear === todayYear)
-                        onClicked: {
-                            if (viewMonth === 12) { viewMonth = 1; viewYear++ }
-                            else viewMonth++
-                            refreshHeatmap()
-                        }
+                    flat: true
+                    font.pixelSize: 18
+                    onClicked: {
+                        if (viewMonth === 12) { viewMonth = 1; viewYear++ }
+                        else viewMonth++
+                        refreshHeatmap()
+                    }
+                }
+                Button {
+                    text: "Today"
+                    flat: true
+                    font.pixelSize: 12
+                    visible: !(viewMonth === todayMonth && viewYear === todayYear)
+                    onClicked: {
+                        viewMonth = todayMonth
+                        viewYear = todayYear
+                        refreshHeatmap()
                     }
                 }
             }
