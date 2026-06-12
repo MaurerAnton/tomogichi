@@ -205,21 +205,14 @@ Kirigami.Page {
                 ScrollView {
                     id: diaryScroll
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 48
-                    Layout.maximumHeight: 200
+                    Layout.preferredHeight: 200
                     ScrollBar.vertical.policy: ScrollBar.AsNeeded
                     TextArea {
                         id: diaryInput
                         width: parent.width
                         placeholderText: "What happened today?"
                         wrapMode: TextArea.Wrap
-                        onTextChanged: heightTimer.restart()
                     }
-                }
-                Timer {
-                    id: heightTimer
-                    interval: 0
-                    onTriggered: diaryScroll.Layout.preferredHeight = Math.max(48, Math.min(diaryInput.contentHeight + 16, 200))
                 }
                 Button { text: "Save"; Layout.alignment: Qt.AlignRight; onClicked: addDiary() }
             }
