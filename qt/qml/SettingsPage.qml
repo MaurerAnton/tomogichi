@@ -207,9 +207,14 @@ Kirigami.Page {
                     placeholderText: "What happened today?"
                     Layout.fillWidth: true
                     Layout.maximumHeight: 200
-                    Layout.preferredHeight: Math.max(48, Math.min(diaryInput.implicitHeight, 200))
+                    Layout.preferredHeight: 48
                     wrapMode: TextArea.Wrap
-                    onTextChanged: diaryInput.Layout.preferredHeight = Math.max(48, Math.min(diaryInput.implicitHeight, 200))
+                    onTextChanged: heightTimer.restart()
+                }
+                Timer {
+                    id: heightTimer
+                    interval: 0
+                    onTriggered: diaryInput.Layout.preferredHeight = Math.max(48, Math.min(diaryInput.contentHeight + 12, 200))
                 }
                 Button { text: "Save"; Layout.alignment: Qt.AlignRight; onClicked: addDiary() }
             }
