@@ -39,11 +39,27 @@ Kirigami.Page {
 
     // Background wallpaper
     Image {
+        id: bgImage
         anchors.fill: parent
-        source: Backend.wallpaper ? "file://" + Backend.wallpaper : ""
+        source: Backend.wallpaper.length > 0 ? Backend.wallpaper : ""
         fillMode: Image.PreserveAspectCrop
         opacity: 0.2
-        visible: Backend.wallpaper.length > 0
+        visible: Backend.wallpaper.length > 0 && bgImage.status === Image.Ready
+        onStatusChanged: {
+            if (status === Image.Error && Backend.wallpaper.length > 0) {
+                bgError.visible = true
+                bgError.text = "Wallpaper not found: " + Backend.wallpaper
+            }
+        }
+    }
+    Label {
+        id: bgError
+        anchors.centerIn: parent
+        visible: false
+        text: ""
+        color: "#EF5350"
+        font.pixelSize: 12
+        wrapMode: Text.WordWrap
     }
 
     ColumnLayout {
