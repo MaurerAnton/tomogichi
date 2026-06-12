@@ -37,6 +37,15 @@ Kirigami.Page {
         function onPersonsChanged() { refreshPersons() }
     }
 
+    // Background wallpaper
+    Image {
+        anchors.fill: parent
+        source: Backend.wallpaper ? "file://" + Backend.wallpaper : ""
+        fillMode: Image.PreserveAspectCrop
+        opacity: 0.12
+        visible: Backend.wallpaper.length > 0
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 16

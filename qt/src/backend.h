@@ -43,6 +43,7 @@ class Backend : public QObject {
     Q_PROPERTY(int totalSessions READ totalSessions NOTIFY historyChanged)
     Q_PROPERTY(bool onboardingSeen READ onboardingSeen NOTIFY boostChanged)
     Q_PROPERTY(int theme READ theme NOTIFY boostChanged)
+    Q_PROPERTY(QString wallpaper READ wallpaper NOTIFY boostChanged)
     Q_PROPERTY(QVariantList moodHistory READ moodHistory NOTIFY moodChanged)
 
 public:
@@ -88,6 +89,9 @@ public:
     bool onboardingSeen() const;
     int theme() const;
     Q_INVOKABLE void setTheme(int t);
+    QString wallpaper() const;
+    Q_INVOKABLE void setWallpaper(const QString &path);
+    Q_INVOKABLE void clearWallpaper();
     Q_INVOKABLE void markOnboardingSeen();
 
     /* Compute today's summary */

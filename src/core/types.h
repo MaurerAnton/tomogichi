@@ -137,6 +137,7 @@ struct MasterState {
     bool coins_double;       /* shop item: double coins from next challenge */
     bool onboarding_seen;    /* don't show welcome screen again */
     int theme;               /* 0=system, 1=light, 2=dark */
+    std::string wallpaper;   /* path to background image */
 };
 
 #endif /* TOMOGICHI_TYPES_H */

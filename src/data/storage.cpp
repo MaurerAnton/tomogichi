@@ -142,6 +142,7 @@ bool load_state(const std::string& path, GameState& state) {
             state.master.coins_double = jm.value("coins_double", false);
             state.master.onboarding_seen = jm.value("onboarding_seen", false);
             state.master.theme = jm.value("theme", 0);
+            state.master.wallpaper = jm.value("wallpaper", "");
 
             /* Daily todos */
             if (jm.contains("daily_todos")) {
@@ -355,6 +356,7 @@ bool save_state(const std::string& path, const GameState& state) {
     jm["coins_double"] = state.master.coins_double;
     jm["onboarding_seen"] = state.master.onboarding_seen;
     jm["theme"] = state.master.theme;
+    if (!state.master.wallpaper.empty()) jm["wallpaper"] = state.master.wallpaper;
 
     /* Daily todos */
     jm["daily_todos"] = json::array();

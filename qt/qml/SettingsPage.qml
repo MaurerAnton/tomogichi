@@ -441,6 +441,32 @@ Kirigami.Page {
                     }
                 }
 
+                // Wallpaper
+                RowLayout {
+                    Label { text: "Wallpaper:"; font.pixelSize: 14 }
+                    TextField {
+                        id: wallpaperPath
+                        placeholderText: "Path to image..."
+                        Layout.fillWidth: true
+                        text: Backend.wallpaper
+                        font.pixelSize: 12
+                    }
+                    Button {
+                        text: "Set"
+                        flat: true
+                        onClicked: Backend.setWallpaper(wallpaperPath.text)
+                    }
+                    Button {
+                        text: "Clear"
+                        flat: true
+                        visible: Backend.wallpaper.length > 0
+                        onClicked: {
+                            Backend.clearWallpaper()
+                            wallpaperPath.text = ""
+                        }
+                    }
+                }
+
                 // Export
                 Rectangle {
                     Layout.fillWidth: true; height: 48; radius: 10

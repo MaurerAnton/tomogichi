@@ -669,6 +669,18 @@ void Backend::setTheme(int t) {
     }
 }
 
+QString Backend::wallpaper() const { return QString::fromStdString(m_state.master.wallpaper); }
+void Backend::setWallpaper(const QString &path) {
+    m_state.master.wallpaper = path.toStdString();
+    saveState();
+    emit boostChanged();
+}
+void Backend::clearWallpaper() {
+    m_state.master.wallpaper.clear();
+    saveState();
+    emit boostChanged();
+}
+
 QVariantList Backend::moodHistory() const {
     QVariantList list;
     int count = 0;
