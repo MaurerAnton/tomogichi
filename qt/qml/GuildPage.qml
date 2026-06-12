@@ -42,7 +42,7 @@ Kirigami.Page {
         anchors.fill: parent
         source: Backend.wallpaper ? "file://" + Backend.wallpaper : ""
         fillMode: Image.PreserveAspectCrop
-        opacity: 0.12
+        opacity: 0.2
         visible: Backend.wallpaper.length > 0
     }
 
