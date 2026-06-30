@@ -623,6 +623,7 @@ static void cmd_help() {
     std::cout << "  diary show                   — show recent entries\n";
     std::cout << "\n\033[1mCharacters:\033[0m\n";
     std::cout << "  rename PERSON NEWNAME        — rename a character\n";
+    std::cout << "  theme [system|light|dark]    — set app theme (affects GUI)\n";
     std::cout << "  clist                        — show character checklists\n";
     std::cout << "  clist add PERSON TEXT        — add checklist item\n";
     std::cout << "  clist done N                 — mark done\n";
@@ -2042,6 +2043,18 @@ static bool parse_command(GameState& state, const std::string& line) {
             }
         } else {
             std::cout << "Usage: rename <person> <newname>\n\n";
+        }
+    }
+    else if (cmd == "theme") {
+        std::string sub;
+        if (iss >> sub) {
+            if (sub == "dark" || sub == "2") { state.master.theme = 2; std::cout << "Theme: Dark\n\n"; }
+            else if (sub == "light" || sub == "1") { state.master.theme = 1; std::cout << "Theme: Light\n\n"; }
+            else if (sub == "system" || sub == "auto" || sub == "0") { state.master.theme = 0; std::cout << "Theme: System\n\n"; }
+            else { std::cout << "Usage: theme [system|light|dark|0|1|2]\n\n"; }
+        } else {
+            const char* names[] = {"System","Light","Dark"};
+            std::cout << "Theme: " << names[state.master.theme % 3] << "\n\n";
         }
     }
     else if (cmd == "mood") {
