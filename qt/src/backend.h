@@ -169,6 +169,9 @@ public slots:
     Q_INVOKABLE void charChecklistDelete(int index);
     Q_INVOKABLE void charChecklistRepeat(int index, int hours);
 
+    /* Emergency SOS → Agora */
+    Q_INVOKABLE void triggerEmergency();
+
     /* Archived skills for a person */
     Q_INVOKABLE QVariantList archivedSkills(const QString &personId);
 

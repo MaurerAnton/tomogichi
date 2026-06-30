@@ -4,6 +4,7 @@
 #include <cmath>
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 
 Backend::Backend(QObject *parent) : QObject(parent) {
     connect(&m_tickTimer, &QTimer::timeout, this, &Backend::tick);
@@ -1112,6 +1113,40 @@ void Backend::charChecklistRepeat(int index, int hours) {
     if (hours > 0) ci.done = false; /* reset so it shows pending */
     saveState();
     emit charChecklistsChanged();
+}
+
+/* --- Emergency SOS --- */
+
+#include <sstream>
+
+void Backend::triggerEmergency() {
+    time_t now = time(nullptr);
+    struct tm tm_now;
+    localtime_r(&now, &tm_now);
+    char ts[32];
+    strftime(ts, sizeof(ts), "%Y-%m-%d %H:%M", &tm_now);
+
+    const char* home = getenv("HOME");
+    std::string emerg_path = home ? std::string(home) + "/agora-emergency.md" : "agora-emergency.md";
+
+    std::ofstream eout(emerg_path);
+    if (eout.is_open()) {
+        eout << "# 🚨 EMERGENCY PROTOCOL ACTIVE 🚨\n";
+        eout << "**Triggered:** " << ts << "\n";
+        eout << "**Status:** User triggered emergency from Tomogichi GUI.\n\n";
+        eout << "## ⚠️ AI Instructions\n";
+        eout << "1. Analyze the last week of practice data in active_memory below for neglect patterns\n";
+        eout << "2. Check which characters are most idle and suggest 5-min easy practice\n";
+        eout << "3. Give compassionate, serious support — DO NOT be cheery\n";
+        eout << "4. Create a simple recovery plan with one concrete first step\n";
+        eout << "5. After responding, remind the user this file exists and ask if they want to clear it\n\n";
+        eout << "The user's full Tomogichi state is in the message context.\n";
+        eout.close();
+    }
+
+    m_state.master.entropy = 100;
+    saveState();
+    emit boostChanged();
 }
 
 QVariantList Backend::archivedSkills(const QString &personId) {

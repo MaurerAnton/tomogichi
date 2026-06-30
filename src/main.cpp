@@ -29,6 +29,7 @@ static std::string timer_person;
 static std::string timer_skill;
 static time_t timer_start = 0;
 static int timer_planned = 0;  /* planned minutes, 0 = no limit */
+static bool emergency_triggered = false;  /* skip auto-export after emergency */
 
 /* --- Display Helpers --- */
 
@@ -1459,6 +1460,7 @@ static void cmd_export_agora(GameState& state) {
     j << "{\n";
     j << "  \"app\": \"tomogichi\",\n";
     j << "  \"version\": \"0.5.0\",\n";
+    j << "  \"emergency\": " << (state.master.entropy > 90 ? "true" : "false") << ",\n";
     j << "  \"generated_at\": \"" << date_buf << "T" << time_buf << ":00\",\n";
     j << "  \"today\": {\"date\": \"" << date_buf << "\", \"dow\": " << tm_now.tm_wday << "},\n";
     j << "  \"now\": \"" << time_buf << "\",\n";
@@ -1764,6 +1766,46 @@ static void cmd_export(GameState& state, std::istringstream& iss) {
     else {
         std::cout << "Usage: export csv | export agora | export json\n\n";
     }
+}
+
+/* --- Command: emergency (SOS → Agora AI) --- */
+
+static void cmd_emergency(GameState& state) {
+    time_t now = time(nullptr);
+    struct tm tm_now;
+    localtime_r(&now, &tm_now);
+    char ts[32];
+    strftime(ts, sizeof(ts), "%Y-%m-%d %H:%M", &tm_now);
+
+    /* Write emergency to dedicated file — never overwritten by auto-export */
+    const char* home = getenv("HOME");
+    std::string emerg_path = home ? std::string(home) + "/agora-emergency.md" : "agora-emergency.md";
+
+    std::ofstream eout(emerg_path);
+    if (eout.is_open()) {
+        eout << "# 🚨 EMERGENCY PROTOCOL ACTIVE 🚨\n";
+        eout << "**Triggered:** " << ts << "\n";
+        eout << "**Status:** User reports being in a bad state.\n\n";
+        eout << "## ⚠️ AI Instructions\n";
+        eout << "1. Analyze the last week of practice data in active_memory below for neglect patterns\n";
+        eout << "2. Check which characters are most idle and suggest 5-min easy practice\n";
+        eout << "3. Give compassionate, serious support — DO NOT be cheery\n";
+        eout << "4. Create a simple recovery plan with one concrete first step\n";
+        eout << "5. After responding, remind the user this file exists and ask if they want to clear it\n\n";
+        eout << "The user's full Tomogichi state is in the message context.\n";
+        eout.close();
+    }
+
+    std::cout << "\n";
+    std::cout << "\033[1;31m";
+    std::cout << "╔══════════════════════════════════════╗\n";
+    std::cout << "║     🚨 EMERGENCY PROTOCOL SENT 🚨     ║\n";
+    std::cout << "╠══════════════════════════════════════╣\n";
+    std::cout << "║ AI will analyze last week + plan     ║\n";
+    std::cout << "║ File: ~/agora-emergency.md           ║\n";
+    std::cout << "║ Now open Agora and start a chat.     ║\n";
+    std::cout << "╚══════════════════════════════════════╝\n";
+    std::cout << "\033[0m\n\n";
 }
 
 /* --- Command: character checklist (clist) --- */
@@ -2371,6 +2413,9 @@ static bool parse_command(GameState& state, const std::string& line) {
             std::cout << "Theme: " << names[state.master.theme % 3] << "\n\n";
         }
     }
+    else if (cmd == "emergency" || cmd == "sos") {
+        cmd_emergency(state);
+    }
     else if (cmd == "mood") {
         cmd_mood(state, iss);
     }
@@ -2427,8 +2472,6 @@ int main(int argc, char **argv) {
         std::cout << "No saved state found, creating default...\n";
         state = default_state();
     }
-
-    /* Auto-export Agora bridge on startup */
     cmd_export_agora(state);
 
     std::cout << "\033[1;36m"
@@ -2593,8 +2636,11 @@ int main(int argc, char **argv) {
         if (!save_state(STATE_PATH, state)) {
             std::cout << "\033[31mWarning: failed to save state!\033[0m\n";
         }
-        /* Auto-export Agora bridge JSON */
-        cmd_export_agora(state);
+        /* Auto-export Agora bridge JSON (skip after emergency — it handles its own) */
+        if (!emergency_triggered) {
+            cmd_export_agora(state);
+        }
+        emergency_triggered = false;
     }
 
     /* Warn if timer still running on exit */

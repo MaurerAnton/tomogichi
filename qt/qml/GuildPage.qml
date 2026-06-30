@@ -80,6 +80,27 @@ Kirigami.Page {
             visible: Backend.coins > 0
         }
 
+        // Emergency SOS button
+        Rectangle {
+            Layout.fillWidth: true
+            height: 44
+            radius: 10
+            color: Qt.rgba(0.94, 0.2, 0.2, 0.15)
+            border.width: 2
+            border.color: "#EF5350"
+            visible: true
+            RowLayout {
+                anchors.centerIn: parent
+                spacing: 8
+                Label { text: "🚨"; font.pixelSize: 22 }
+                Label { text: "EMERGENCY — Notify AI (bad state)"; font.pixelSize: 14; color: "#EF5350"; font.bold: true }
+            }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: emergencyDialog.open()
+            }
+        }
+
         // Active boosts
         Row {
             spacing: 8
@@ -348,5 +369,26 @@ Kirigami.Page {
     Component {
         id: timerComponent
         TimerPage {}
+    }
+
+    // Emergency confirmation dialog
+    Dialog {
+        id: emergencyDialog
+        title: "🚨 Trigger Emergency Protocol?"
+        ColumnLayout { spacing: 10; width: 280
+            Label {
+                text: "This will notify the AI in Agora that you're in a bad state."
+                wrapMode: Text.WordWrap; font.pixelSize: 13
+            }
+            Label {
+                text: "The AI will analyze last week's activity, check neglected characters, and create a recovery plan."
+                wrapMode: Text.WordWrap; font.pixelSize: 12; color: Kirigami.Theme.disabledTextColor
+            }
+        }
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        onAccepted: {
+            Backend.triggerEmergency()
+            root.pageStack.replace(todayPage)
+        }
     }
 }
