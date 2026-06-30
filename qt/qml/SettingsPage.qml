@@ -446,7 +446,7 @@ Kirigami.Page {
                     MouseArea { anchors.fill: parent; onClicked: { var p = Backend.exportCsv(); exportLabel.text = "Exported to " + p; exportLabel.visible = true } }
                 }
                 Label { id: exportLabel; visible: false; text: ""; font.pixelSize: 11; color: Kirigami.Theme.positiveTextColor }
-                Label { text: "Tomogichi v0.5.0 — Qt Quick + Kirigami"; font.pixelSize: 11; color: Kirigami.Theme.disabledTextColor; Layout.alignment: Qt.AlignHCenter }
+                Label { text: "Tomogichi v0.5.1 — Qt Quick + Kirigami"; font.pixelSize: 11; color: Kirigami.Theme.disabledTextColor; Layout.alignment: Qt.AlignHCenter }
             }
 
             Item { Layout.fillHeight: true }
