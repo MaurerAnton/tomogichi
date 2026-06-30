@@ -45,6 +45,7 @@ class Backend : public QObject {
     Q_PROPERTY(int theme READ theme NOTIFY boostChanged)
     Q_PROPERTY(QString wallpaper READ wallpaper NOTIFY boostChanged)
     Q_PROPERTY(QVariantList moodHistory READ moodHistory NOTIFY moodChanged)
+    Q_PROPERTY(QVariantList charChecklists READ charChecklists NOTIFY charChecklistsChanged)
 
 public:
     explicit Backend(QObject *parent = nullptr);
@@ -156,6 +157,18 @@ public slots:
     void diaryAdd(const QString &text);
     void diaryAddComment(int index, const QString &text);
 
+    /* Character checklists */
+    QVariantList charChecklists() const;
+
+    /* Character rename */
+    Q_INVOKABLE void renamePerson(const QString &personId, const QString &newName);
+
+    /* Character checklist actions */
+    Q_INVOKABLE void charChecklistAdd(const QString &personId, const QString &text);
+    Q_INVOKABLE void charChecklistToggle(int index);
+    Q_INVOKABLE void charChecklistDelete(int index);
+    Q_INVOKABLE void charChecklistRepeat(int index, int hours);
+
     /* Archived skills for a person */
     Q_INVOKABLE QVariantList archivedSkills(const QString &personId);
 
@@ -183,6 +196,7 @@ signals:
     void birthdaysChanged();
     void moodChanged();
     void boostChanged();
+    void charChecklistsChanged();
     void effectPrompt(const QString &personName, const QString &skillName, int minutes);
     void coinsEarned(int amount);
 

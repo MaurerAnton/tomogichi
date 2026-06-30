@@ -117,6 +117,14 @@ struct DiaryEntry {
     std::vector<DiaryComment> comments;
 };
 
+struct CharChecklistItem {
+    std::string person_id;
+    std::string text;
+    bool done;
+    int repeat_hours;        /* 0 = no repeat */
+    time_t last_completed;   /* when last marked done (for repeat timing) */
+};
+
 struct MasterState {
     std::vector<Task> tasks;
     std::vector<Birthday> birthdays;
@@ -127,6 +135,7 @@ struct MasterState {
     std::vector<SkillTodo> skill_todos;
     std::vector<MoodEntry> mood_log;
     std::vector<DiaryEntry> diary_log;
+    std::vector<CharChecklistItem> char_checklists;
     int next_task_id;
     int coins;
     time_t daily_reset;

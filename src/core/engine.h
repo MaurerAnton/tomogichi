@@ -190,6 +190,9 @@ bool delete_skill(Person& person, const std::string& skill_name);
 /* Rename a skill (active or archived). Updates cross-bonus rules that reference it. */
 bool rename_skill(Person& person, const std::string& old_name, const std::string& new_name);
 
+/* Rename a character's display name. Returns true on success. */
+bool rename_person(Person& person, const std::string& new_name);
+
 /* --- Mood & Diary --- */
 
 /* Valid mood words */

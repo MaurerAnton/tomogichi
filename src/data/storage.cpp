@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <ctime>
 #include <algorithm>
+#include <sys/stat.h>
 
 using json = nlohmann::json;
 
@@ -235,6 +236,23 @@ bool load_state(const std::string& path, GameState& state) {
                 }
             }
 
+            /* Character checklists */
+            if (jm.contains("char_checklists")) {
+                state.master.char_checklists.clear();
+                for (const auto& jci : jm["char_checklists"]) {
+                    CharChecklistItem ci;
+                    ci.person_id = jci.value("person", "");
+                    ci.text = jci.value("text", "");
+                    ci.done = jci.value("done", false);
+                    ci.repeat_hours = jci.value("repeat_hours", 0);
+                    ci.last_completed = 0;
+                    if (jci.contains("last_completed") && !jci["last_completed"].is_null()) {
+                        ci.last_completed = iso_to_time(jci["last_completed"].get<std::string>());
+                    }
+                    state.master.char_checklists.push_back(ci);
+                }
+            }
+
             /* Diary log */
             if (jm.contains("diary_log")) {
                 state.master.diary_log.clear();
@@ -431,6 +449,18 @@ bool save_state(const std::string& path, const GameState& state) {
         jm["mood_log"].push_back(jmood);
     }
 
+    /* Character checklists */
+    jm["char_checklists"] = json::array();
+    for (const auto& ci : state.master.char_checklists) {
+        json jci;
+        jci["person"] = ci.person_id;
+        jci["text"] = ci.text;
+        jci["done"] = ci.done;
+        jci["repeat_hours"] = ci.repeat_hours;
+        if (ci.last_completed > 0) jci["last_completed"] = time_to_iso(ci.last_completed);
+        jm["char_checklists"].push_back(jci);
+    }
+
     /* Diary log */
     jm["diary_log"] = json::array();
     for (const auto& de : state.master.diary_log) {
@@ -469,6 +499,15 @@ bool save_state(const std::string& path, const GameState& state) {
             jl["notes"] = pe.notes;
         }
         j["practice_log"].push_back(jl);
+    }
+
+    /* Create parent directory if it doesn't exist */
+    {
+        size_t slash = path.rfind('/');
+        if (slash != std::string::npos) {
+            std::string dir = path.substr(0, slash);
+            mkdir(dir.c_str(), 0755);
+        }
     }
 
     /* Atomic write: tmp file, then rename */

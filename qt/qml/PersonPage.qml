@@ -16,8 +16,6 @@ Kirigami.Page {
 
     ListModel { id: skillModel }
 
-    Component.onCompleted: refreshSkills()
-
     function refreshSkills() {
         skillModel.clear()
         var persons = Backend.persons
@@ -36,11 +34,6 @@ Kirigami.Page {
         }
     }
 
-    Connections {
-        target: Backend
-        function onPersonsChanged() { refreshSkills() }
-    }
-
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 16
@@ -50,12 +43,23 @@ Kirigami.Page {
             Label { text: personMood; font.pixelSize: 36 }
             ColumnLayout {
                 spacing: 2
-                Kirigami.Heading { text: personName; level: 2 }
+                Kirigami.Heading {
+                    text: personName; level: 2
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: renamePersonDialog.open()
+                    }
+                }
                 Label {
                     text: personRole + " · Lvl " + personLevel + " " + personTitle + " · " + getTotalXP() + " XP"
                     font.pixelSize: 14
                     color: Kirigami.Theme.disabledTextColor
                 }
+            }
+            Item { Layout.fillWidth: true }
+            Label {
+                text: "✎"; font.pixelSize: 18; color: Kirigami.Theme.highlightColor
+                MouseArea { anchors.fill: parent; onClicked: renamePersonDialog.open() }
             }
         }
 
@@ -232,10 +236,161 @@ Kirigami.Page {
         return total
     }
 
-        Component.onCompleted: { refreshSkills(); refreshArchive() }
+        // Character checklist section
+        Kirigami.Separator { Layout.fillWidth: true; Layout.topMargin: 12 }
+
+        RowLayout {
+            Kirigami.Heading { text: "☑ Checklist"; level: 3; Layout.fillWidth: true }
+            Label {
+                text: "+"; font.pixelSize: 22; color: Kirigami.Theme.highlightColor
+                MouseArea { anchors.fill: parent; onClicked: addChecklistDialog.open() }
+            }
+        }
+
+        Repeater {
+            model: checklistModel
+            delegate: RowLayout {
+                width: parent ? parent.width : 300; spacing: 8
+                CheckBox {
+                    checked: modelData.done
+                    onClicked: {
+                        Backend.charChecklistToggle(modelData.index)
+                        refreshChecklist()
+                    }
+                }
+                ColumnLayout {
+                    spacing: 0; Layout.fillWidth: true
+                    Label {
+                        text: modelData.text; font.pixelSize: 13
+                        color: modelData.done ? Kirigami.Theme.disabledTextColor : Kirigami.Theme.textColor
+                    }
+                    Label {
+                        text: modelData.repeatHours > 0 ?
+                              (modelData.done ? "↻ repeats in " + modelData.repeatInHours + "h" : "↻ every " + modelData.repeatHours + "h") : ""
+                        font.pixelSize: 10; color: Kirigami.Theme.highlightColor
+                        visible: modelData.repeatHours > 0
+                    }
+                }
+                Label {
+                    text: "⏱"; font.pixelSize: 14; color: Kirigami.Theme.highlightColor
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            repeatDialog.itemIndex = modelData.index
+                            repeatDialog.itemText = modelData.text
+                            repeatDialog.open()
+                        }
+                    }
+                }
+                Label {
+                    text: "✕"; color: "#EF5350"; font.pixelSize: 14
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            Backend.charChecklistDelete(modelData.index)
+                            refreshChecklist()
+                        }
+                    }
+                }
+            }
+        }
+
+        ListModel { id: checklistModel }
+
+        function refreshChecklist() {
+            checklistModel.clear()
+            var items = Backend.charChecklists
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].personId === personId) {
+                    checklistModel.append(items[i])
+                }
+            }
+        }
+
+        Component.onCompleted: { refreshSkills(); refreshArchive(); refreshChecklist() }
+    }
+
+    Connections {
+        target: Backend
+        function onCharChecklistsChanged() { refreshChecklist() }
+        function onPersonsChanged() { refreshSkills(); refreshArchive() }
     }
 
     Component { id: timerComponent; TimerPage {} }
+
+    // Rename person dialog
+    Dialog {
+        id: renamePersonDialog
+        title: "Rename " + personName
+        ColumnLayout { spacing: 8; width: 280
+            Label { text: "New name:" }
+            TextField {
+                id: renamePersonInput
+                Layout.fillWidth: true
+                text: personName
+                onAccepted: doRename()
+            }
+        }
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        onAccepted: doRename()
+        function doRename() {
+            if (renamePersonInput.text.trim() && renamePersonInput.text.trim() !== personName) {
+                Backend.renamePerson(personId, renamePersonInput.text.trim())
+            }
+        }
+    }
+
+    // Add checklist item dialog
+    Dialog {
+        id: addChecklistDialog
+        title: "Add Checklist Item"
+        ColumnLayout { spacing: 8; width: 280
+            Label { text: "Task for " + personName + ":" }
+            TextField {
+                id: addChecklistInput
+                Layout.fillWidth: true
+                placeholderText: "e.g. Stretch for 10 min"
+                onAccepted: doAdd()
+            }
+        }
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        onAccepted: doAdd()
+        function doAdd() {
+            if (addChecklistInput.text.trim()) {
+                Backend.charChecklistAdd(personId, addChecklistInput.text.trim())
+                addChecklistInput.text = ""
+            }
+        }
+    }
+
+    // Repeat interval dialog
+    Dialog {
+        id: repeatDialog
+        title: "Set Repeat Interval"
+        property int itemIndex: -1
+        property string itemText: ""
+        ColumnLayout { spacing: 8; width: 280
+            Label { text: "Repeat '" + repeatDialog.itemText + "' every:"; wrapMode: Text.WordWrap }
+            RowLayout {
+                spacing: 8
+                TextField {
+                    id: repeatHoursInput
+                    placeholderText: "hours"
+                    Layout.fillWidth: true
+                    inputMethodHints: Qt.ImhDigitsOnly
+                    onAccepted: doSet()
+                }
+                Label { text: "hours (0 = no repeat)"; font.pixelSize: 11; color: Kirigami.Theme.disabledTextColor }
+            }
+        }
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        onAccepted: doSet()
+        function doSet() {
+            var h = parseInt(repeatHoursInput.text) || 0
+            Backend.charChecklistRepeat(repeatDialog.itemIndex, h)
+            repeatHoursInput.text = ""
+        }
+    }
 
     // Archive confirmation dialog
     Dialog {

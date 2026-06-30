@@ -1033,6 +1033,87 @@ void Backend::birthdayDelete(int index) {
     emit birthdaysChanged();
 }
 
+/* --- Character Rename --- */
+
+void Backend::renamePerson(const QString &personId, const QString &newName) {
+    Person *p = find_person(m_state.persons, personId.toStdString());
+    if (!p) return;
+    ::rename_person(*p, newName.toStdString());
+    saveState();
+    emit personsChanged();
+}
+
+/* --- Character Checklists --- */
+
+QVariantList Backend::charChecklists() const {
+    QVariantList list;
+    time_t now = time(nullptr);
+    for (size_t i = 0; i < m_state.master.char_checklists.size(); i++) {
+        auto &ci = const_cast<CharChecklistItem&>(m_state.master.char_checklists[i]);
+        /* Auto-reset repeating items */
+        if (ci.done && ci.repeat_hours > 0 && ci.last_completed > 0) {
+            double elapsed_h = difftime(now, ci.last_completed) / 3600.0;
+            if (elapsed_h >= ci.repeat_hours) {
+                ci.done = false;
+            }
+        }
+        const Person *p = find_person(m_state.persons, ci.person_id);
+        QVariantMap m;
+        m["index"] = (int)i;
+        m["personId"] = QString::fromStdString(ci.person_id);
+        m["personName"] = p ? QString::fromStdString(p->name) : QString::fromStdString(ci.person_id);
+        m["text"] = QString::fromStdString(ci.text);
+        m["done"] = ci.done;
+        m["repeatHours"] = ci.repeat_hours;
+        if (ci.repeat_hours > 0 && ci.last_completed > 0) {
+            double elapsed = difftime(now, ci.last_completed) / 3600.0;
+            double left = ci.repeat_hours - elapsed;
+            m["repeatInHours"] = left > 0 ? (int)left : 0;
+        } else {
+            m["repeatInHours"] = 0;
+        }
+        list.append(m);
+    }
+    return list;
+}
+
+void Backend::charChecklistAdd(const QString &personId, const QString &text) {
+    CharChecklistItem ci;
+    ci.person_id = personId.toStdString();
+    ci.text = text.toStdString();
+    ci.done = false;
+    ci.repeat_hours = 0;
+    ci.last_completed = 0;
+    m_state.master.char_checklists.push_back(ci);
+    saveState();
+    emit charChecklistsChanged();
+}
+
+void Backend::charChecklistToggle(int index) {
+    if (index < 0 || index >= (int)m_state.master.char_checklists.size()) return;
+    auto &ci = m_state.master.char_checklists[index];
+    ci.done = !ci.done;
+    if (ci.done) ci.last_completed = time(nullptr);
+    saveState();
+    emit charChecklistsChanged();
+}
+
+void Backend::charChecklistDelete(int index) {
+    if (index < 0 || index >= (int)m_state.master.char_checklists.size()) return;
+    m_state.master.char_checklists.erase(m_state.master.char_checklists.begin() + index);
+    saveState();
+    emit charChecklistsChanged();
+}
+
+void Backend::charChecklistRepeat(int index, int hours) {
+    if (index < 0 || index >= (int)m_state.master.char_checklists.size()) return;
+    auto &ci = m_state.master.char_checklists[index];
+    ci.repeat_hours = hours;
+    if (hours > 0) ci.done = false; /* reset so it shows pending */
+    saveState();
+    emit charChecklistsChanged();
+}
+
 QVariantList Backend::archivedSkills(const QString &personId) {
     QVariantList list;
     for (const auto &p : m_state.persons) {

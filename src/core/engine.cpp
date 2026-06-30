@@ -935,6 +935,14 @@ bool rename_skill(Person& person, const std::string& old_name, const std::string
     return false;
 }
 
+/* --- Rename Person --- */
+
+bool rename_person(Person& person, const std::string& new_name) {
+    if (new_name.empty()) return false;
+    person.name = new_name;
+    return true;
+}
+
 /* --- Mood & Diary --- */
 
 std::vector<std::string> mood_words() {

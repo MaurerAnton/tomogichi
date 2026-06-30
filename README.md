@@ -140,6 +140,7 @@ Color-coded freshness per skill — green (0-2 days), yellow (3-5), gray (6+).
 **Mood:** `mood [word]`, `mood list`
 **Diary:** `diary [text]`
 **Skills:** `skill archive/reactivate/list`
+**Characters:** `rename PERSON NEWNAME`, `clist`, `clist add PERSON TEXT`, `clist done N`, `clist undo N`, `clist del N`, `clist repeat N HOURS`
 **Achievements:** `ach`
 **Export:** `backup`, `export csv`
 

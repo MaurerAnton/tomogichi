@@ -10,6 +10,7 @@
 #include <cstring>
 #include <strings.h>
 #include <iomanip>
+#include <sys/stat.h>
 
 /* --- Helpers --- */
 static std::string repeat(int n, const std::string& s) {
@@ -620,6 +621,14 @@ static void cmd_help() {
     std::cout << "  mood                         — show recent mood log\n";
     std::cout << "  diary <text>                 — add diary entry\n";
     std::cout << "  diary show                   — show recent entries\n";
+    std::cout << "\n\033[1mCharacters:\033[0m\n";
+    std::cout << "  rename PERSON NEWNAME        — rename a character\n";
+    std::cout << "  clist                        — show character checklists\n";
+    std::cout << "  clist add PERSON TEXT        — add checklist item\n";
+    std::cout << "  clist done N                 — mark done\n";
+    std::cout << "  clist undo N                 — reopen\n";
+    std::cout << "  clist del N                  — delete\n";
+    std::cout << "  clist repeat N HOURS         — auto-repeat every N hours\n";
     std::cout << "\n\033[1mTools:\033[0m\n";
     std::cout << "  plan, today                  — today's schedule + tasks + recs\n";
     std::cout << "  stodo                        — skill-specific todos\n";
@@ -1442,6 +1451,149 @@ static void cmd_export(GameState& state, std::istringstream& iss) {
     }
 }
 
+/* --- Command: character checklist (clist) --- */
+
+static void cmd_char_checklist(GameState& state, std::istringstream& iss) {
+    std::string sub;
+    iss >> sub;
+
+    auto& list = state.master.char_checklists;
+
+    if (sub == "add") {
+        std::string pid, text;
+        if (iss >> pid) {
+            std::string rest;
+            getline(iss, rest);
+            size_t s = rest.find_first_not_of(" \t");
+            if (s != std::string::npos) text = rest.substr(s);
+            if (!text.empty()) {
+                CharChecklistItem ci;
+                ci.person_id = pid;
+                ci.text = text;
+                ci.done = false;
+                ci.repeat_hours = 0;
+                ci.last_completed = 0;
+                list.push_back(ci);
+                std::cout << "Checklist added for " << pid << ": " << text << "\n\n";
+            } else {
+                std::cout << "Usage: clist add <person> <text>\n\n";
+            }
+        } else {
+            std::cout << "Usage: clist add <person> <text>\n\n";
+        }
+    }
+    else if (sub == "done") {
+        int idx;
+        if (iss >> idx) {
+            idx--;
+            if (idx >= 0 && idx < (int)list.size()) {
+                list[idx].done = true;
+                list[idx].last_completed = time(nullptr);
+                std::cout << "Checklist [" << (idx + 1) << "] done: "
+                          << list[idx].text << "\n\n";
+            } else {
+                std::cout << "Invalid index.\n\n";
+            }
+        } else {
+            std::cout << "Usage: clist done <N>\n\n";
+        }
+    }
+    else if (sub == "undo") {
+        int idx;
+        if (iss >> idx) {
+            idx--;
+            if (idx >= 0 && idx < (int)list.size()) {
+                list[idx].done = false;
+                std::cout << "Checklist [" << (idx + 1) << "] reopened.\n\n";
+            } else {
+                std::cout << "Invalid index.\n\n";
+            }
+        } else {
+            std::cout << "Usage: clist undo <N>\n\n";
+        }
+    }
+    else if (sub == "del" || sub == "delete") {
+        int idx;
+        if (iss >> idx) {
+            idx--;
+            if (idx >= 0 && idx < (int)list.size()) {
+                std::cout << "Checklist deleted: " << list[idx].text << "\n\n";
+                list.erase(list.begin() + idx);
+            } else {
+                std::cout << "Invalid index.\n\n";
+            }
+        } else {
+            std::cout << "Usage: clist del <N>\n\n";
+        }
+    }
+    else if (sub == "repeat") {
+        int idx, hours;
+        if (iss >> idx >> hours) {
+            idx--;
+            if (idx >= 0 && idx < (int)list.size()) {
+                list[idx].repeat_hours = hours;
+                list[idx].done = false; /* reset so it shows as pending */
+                std::cout << "Checklist [" << (idx + 1) << "] repeats every "
+                          << hours << "h.\n\n";
+            } else {
+                std::cout << "Invalid index.\n\n";
+            }
+        } else {
+            std::cout << "Usage: clist repeat <N> <hours>\n";
+            std::cout << "  Set 0 hours to disable repeat.\n\n";
+        }
+    }
+    else {
+        /* Show all character checklists, grouped by person */
+        std::cout << "\n\033[1;36m══════════ Character Checklists ══════════\033[0m\n";
+
+        if (list.empty()) {
+            std::cout << "  No checklists.\n";
+            std::cout << "  Use: clist add <person> <text>\n";
+        }
+
+        std::string last_person;
+        int i = 1;
+        time_t now = time(nullptr);
+        for (auto& ci : list) {
+            /* Auto-reset repeating items */
+            if (ci.done && ci.repeat_hours > 0 && ci.last_completed > 0) {
+                double elapsed_h = difftime(now, ci.last_completed) / 3600.0;
+                if (elapsed_h >= ci.repeat_hours) {
+                    ci.done = false;
+                }
+            }
+
+            if (ci.person_id != last_person) {
+                const Person* cp = find_person(state.persons, ci.person_id);
+                std::string pname = cp ? cp->name : ci.person_id;
+                std::cout << "\n  \033[1;33m" << pname << "\033[0m:\n";
+                last_person = ci.person_id;
+            }
+
+            const char* mark = ci.done ? "\033[32m☑\033[0m" : "\033[33m☐\033[0m";
+            std::string style = ci.done ? "\033[90m" : "";
+            std::string end_style = ci.done ? "\033[0m" : "";
+
+            std::cout << "  " << i << ". " << mark << " " << style << ci.text << end_style;
+            if (ci.repeat_hours > 0) {
+                if (ci.done) {
+                    double left_h = ci.repeat_hours - difftime(now, ci.last_completed) / 3600.0;
+                    if (left_h > 0)
+                        std::cout << " \033[36m(repeats in " << (int)left_h << "h)\033[0m";
+                } else {
+                    std::cout << " \033[36m(every " << ci.repeat_hours << "h)\033[0m";
+                }
+            }
+            std::cout << "\n";
+            i++;
+        }
+        print_line();
+        std::cout << "\n  clist add PERSON TEXT  |  clist done N  |  clist undo N\n";
+        std::cout << "  clist del N           |  clist repeat N HOURS\n\n";
+    }
+}
+
 /* --- Command: skill manage --- */
 
 static void cmd_skill_manage(GameState& state, std::istringstream& iss) {
@@ -1866,6 +2018,32 @@ static bool parse_command(GameState& state, const std::string& line) {
     else if (cmd == "skill") {
         cmd_skill_manage(state, iss);
     }
+    else if (cmd == "clist" || cmd == "checklist") {
+        cmd_char_checklist(state, iss);
+    }
+    else if (cmd == "rename") {
+        std::string pid, newname;
+        if (iss >> pid) {
+            std::string rest;
+            getline(iss, rest);
+            size_t s = rest.find_first_not_of(" \t");
+            if (s != std::string::npos) newname = rest.substr(s);
+            if (!newname.empty()) {
+                Person* rp = find_person(state.persons, pid);
+                if (rp) {
+                    rename_person(*rp, newname);
+                    std::cout << "Character renamed: " << pid << " → " << newname << "\n\n";
+                } else {
+                    std::cout << "Unknown person: " << pid << "\n\n";
+                }
+            } else {
+                std::cout << "Usage: rename <person> <newname>\n";
+                std::cout << "Example: rename riff Riffy\n\n";
+            }
+        } else {
+            std::cout << "Usage: rename <person> <newname>\n\n";
+        }
+    }
     else if (cmd == "mood") {
         cmd_mood(state, iss);
     }
@@ -1899,6 +2077,9 @@ static bool parse_command(GameState& state, const std::string& line) {
 /* --- Main --- */
 
 int main(int argc, char **argv) {
+    /* Ensure data directory exists */
+    mkdir("data", 0755);
+
     /* Handle flags */
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0) {
