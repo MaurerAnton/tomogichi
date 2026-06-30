@@ -178,12 +178,12 @@ Kirigami.Page {
                             { e: "💔", w: "lonely" }
                         ]
                         delegate: Rectangle {
-                            width: label2.implicitWidth + 16; height: 32; radius: 16
+                            width: 100; height: 32; radius: 16
                             color: Kirigami.Theme.backgroundColor
                             border.width: 1; border.color: Qt.rgba(0.5,0.5,0.5,0.3)
                             RowLayout { anchors.centerIn: parent; spacing: 4
                                 Label { text: modelData.e; font.pixelSize: 16 }
-                                Label { id: label2; text: modelData.w; font.pixelSize: 11 }
+                                Label { text: modelData.w; font.pixelSize: 11 }
                             }
                             MouseArea {
                                 anchors.fill: parent
@@ -229,12 +229,16 @@ Kirigami.Page {
                         Label { text: modelData.text; font.pixelSize: 13; wrapMode: Text.WordWrap; Layout.fillWidth: true }
                     }
                 }
-                TextArea {
-                    id: diaryInput
+                ScrollView {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 100
-                    placeholderText: "What happened today?"
-                    wrapMode: TextArea.Wrap
+                    Layout.preferredHeight: 120
+                    ScrollBar.vertical.policy: ScrollBar.AsNeeded
+                    TextArea {
+                        id: diaryInput
+                        width: parent.width
+                        placeholderText: "What happened today?"
+                        wrapMode: TextArea.Wrap
+                    }
                 }
                 Button { text: "Save"; Layout.alignment: Qt.AlignRight; onClicked: addDiary() }
             }

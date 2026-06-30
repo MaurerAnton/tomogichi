@@ -11,10 +11,17 @@ Kirigami.ApplicationWindow {
 
     pageStack.initialPage: guildPage
 
-    // Reactive theme binding — updates instantly when Backend.theme changes
-    Kirigami.Theme.colorSet: Backend.theme === 1 ? Kirigami.Theme.Light :
-                              Backend.theme === 2 ? Kirigami.Theme.Dark :
-                              Kirigami.Theme.Window
+    // Theme — applied on load + on change via Connections
+    Component.onCompleted: applyTheme()
+    Connections {
+        target: Backend
+        function onBoostChanged() { applyTheme() }
+    }
+    function applyTheme() {
+        if (Backend.theme === 1) Kirigami.Theme.colorSet = Kirigami.Theme.Light
+        else if (Backend.theme === 2) Kirigami.Theme.colorSet = Kirigami.Theme.Dark
+        else Kirigami.Theme.colorSet = Kirigami.Theme.Window
+    }
 
     // Timer indicator chip
     Rectangle {
