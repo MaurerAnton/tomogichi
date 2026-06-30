@@ -11,19 +11,25 @@ Kirigami.ApplicationWindow {
 
     pageStack.initialPage: guildPage
 
-    // Theme — applied on load via initial binding + on change via signal
+    // Theme: applied on load and whenever changed in Settings
     Component.onCompleted: {
-        try { applyTheme() } catch (e) {}
+        if (Backend.theme === 1)
+            Kirigami.Theme.colorSet = Kirigami.Theme.Light
+        else if (Backend.theme === 2)
+            Kirigami.Theme.colorSet = Kirigami.Theme.Dark
+        else
+            Kirigami.Theme.colorSet = Kirigami.Theme.Window
     }
     Connections {
         target: Backend
-        function onBoostChanged() { applyTheme() }
-    }
-    function applyTheme() {
-        var t = Backend.theme
-        if (t === 1) Kirigami.Theme.colorSet = Kirigami.Theme.Light
-        else if (t === 2) Kirigami.Theme.colorSet = Kirigami.Theme.Dark
-        else Kirigami.Theme.colorSet = Kirigami.Theme.Window
+        function onBoostChanged() {
+            if (Backend.theme === 1)
+                Kirigami.Theme.colorSet = Kirigami.Theme.Light
+            else if (Backend.theme === 2)
+                Kirigami.Theme.colorSet = Kirigami.Theme.Dark
+            else
+                Kirigami.Theme.colorSet = Kirigami.Theme.Window
+        }
     }
 
     // Shared timer chip formatter

@@ -635,6 +635,7 @@ static void cmd_help() {
     std::cout << "  stodo                        — skill-specific todos\n";
     std::cout << "  backup                       — backup state.json\n";
     std::cout << "  export csv                   — export practice log to CSV\n";
+    std::cout << "  export agora                 — export bridge JSON for Agora\n";
     std::cout << "\n\033[1mNotifications:\033[0m\n";
     std::cout << "  notify TITLE [body]          — send desktop notification\n";
     std::cout << "  (auto-notify on startup if character is sad/lonely)\n";
@@ -1424,6 +1425,313 @@ static void cmd_backup() {
     std::cout << "Backup saved: " << dst << "\n\n";
 }
 
+/* --- Command: export agora (bridge to Agora LLM client) --- */
+
+static std::string json_escape(const std::string& s) {
+    std::string out;
+    for (char c : s) {
+        if (c == '"') out += "\\\"";
+        else if (c == '\\') out += "\\\\";
+        else if (c == '\n') out += "\\n";
+        else out += c;
+    }
+    return out;
+}
+
+static std::string time_to_str(time_t t) {
+    if (t == 0) return "";
+    char buf[32];
+    struct tm tm;
+    localtime_r(&t, &tm);
+    strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S", &tm);
+    return std::string(buf);
+}
+
+static void cmd_export_agora(GameState& state) {
+    time_t now = time(nullptr);
+    struct tm tm_now;
+    localtime_r(&now, &tm_now);
+    char date_buf[16], time_buf[8];
+    strftime(date_buf, sizeof(date_buf), "%Y-%m-%d", &tm_now);
+    strftime(time_buf, sizeof(time_buf), "%H:%M", &tm_now);
+
+    std::ostringstream j;
+    j << "{\n";
+    j << "  \"app\": \"tomogichi\",\n";
+    j << "  \"version\": \"0.5.0\",\n";
+    j << "  \"generated_at\": \"" << date_buf << "T" << time_buf << ":00\",\n";
+    j << "  \"today\": {\"date\": \"" << date_buf << "\", \"dow\": " << tm_now.tm_wday << "},\n";
+    j << "  \"now\": \"" << time_buf << "\",\n";
+
+    /* Guild */
+    int gl = calc_guild_level(state.persons);
+    j << "  \"guild\": {\"level\": " << gl << ", \"coins\": " << state.master.coins
+      << ", \"entropy\": " << state.master.entropy
+      << ", \"sync\": " << state.master.team_sync << "},\n";
+
+    /* Persons / Characters */
+    j << "  \"persons\": [\n";
+    for (size_t pi = 0; pi < state.persons.size(); pi++) {
+        const auto& p = state.persons[pi];
+        time_t latest = 0;
+        for (const auto& s : p.skills) if (s.last_practice > latest) latest = s.last_practice;
+        CharMood mood = char_mood(latest);
+        j << "    {\"id\": \"" << p.id << "\", \"name\": \"" << json_escape(p.name)
+          << "\", \"role\": \"" << p.role << "\", \"level\": " << p.level
+          << ", \"title\": \"" << p.title << "\", \"mood\": \"" << mood_text(mood)
+          << "\", \"days_idle\": " << days_since(latest) << ", \"skills\": [";
+        for (size_t si = 0; si < p.skills.size(); si++) {
+            const auto& s = p.skills[si];
+            if (si > 0) j << ", ";
+            j << "{\"name\": \"" << s.name << "\", \"level\": " << s.level
+              << ", \"days_since\": " << days_since(s.last_practice)
+              << ", \"is_main\": " << (s.is_main ? "true" : "false") << "}";
+        }
+        j << "]}";
+        if (pi + 1 < state.persons.size()) j << ",";
+        j << "\n";
+    }
+    j << "  ],\n";
+
+    /* Calendar — today + next 3 weeks */
+    j << "  \"calendar_today\": [\n";
+    {
+        bool first = true;
+        for (const auto& cs : state.master.calendar) {
+            if (cs.day_of_week == tm_now.tm_wday) {
+                if (!first) j << ",\n";
+                char tb[8]; snprintf(tb, sizeof(tb), "%02d:%02d", cs.hour, cs.minute);
+                j << "    {\"time\": \"" << tb << "\", \"label\": \"" << json_escape(cs.label)
+                  << "\", \"person\": \"" << cs.person_id << "\"}";
+                first = false;
+            }
+        }
+        j << (first ? "" : "\n  ") << "],\n";
+    }
+
+    /* Calendar upcoming (next 3 weeks) */
+    j << "  \"calendar_upcoming\": [\n";
+    {
+        bool first = true;
+        for (int d = 0; d < 21; d++) {
+            time_t day_t = now + d * 86400;
+            struct tm dtm;
+            localtime_r(&day_t, &dtm);
+            int dow = dtm.tm_wday;
+            for (const auto& cs : state.master.calendar) {
+                if (cs.day_of_week == dow) {
+                    if (!first) j << ",\n";
+                    char db[16]; strftime(db, sizeof(db), "%Y-%m-%d", &dtm);
+                    char tb[8]; snprintf(tb, sizeof(tb), "%02d:%02d", cs.hour, cs.minute);
+                    int days_away = d;
+                    j << "    {\"date\": \"" << db << "\", \"time\": \"" << tb
+                      << "\", \"days_away\": " << days_away
+                      << ", \"label\": \"" << json_escape(cs.label)
+                      << "\", \"person\": \"" << cs.person_id << "\"}";
+                    first = false;
+                }
+            }
+        }
+        j << (first ? "" : "\n  ") << "],\n";
+    }
+
+    /* Reminders now — events within next 30 min */
+    j << "  \"reminders_now\": [\n";
+    {
+        bool first = true;
+        for (const auto& cs : state.master.calendar) {
+            int event_min = cs.hour * 60 + cs.minute;
+            int now_min = tm_now.tm_hour * 60 + tm_now.tm_min;
+            int delta = event_min - now_min;
+            if (cs.day_of_week == tm_now.tm_wday && delta >= 0 && delta <= 30) {
+                if (!first) j << ",\n";
+                char tb[8]; snprintf(tb, sizeof(tb), "%02d:%02d", cs.hour, cs.minute);
+                j << "    {\"time\": \"" << tb << "\", \"in_minutes\": " << delta
+                  << ", \"label\": \"" << json_escape(cs.label)
+                  << "\", \"person\": \"" << cs.person_id << "\"}";
+                first = false;
+            }
+        }
+        j << (first ? "" : "\n  ") << "],\n";
+    }
+
+    /* Tasks open */
+    j << "  \"tasks_open\": [";
+    {
+        bool first = true;
+        for (const auto& t : state.master.tasks) {
+            if (t.done) continue;
+            if (!first) j << ", ";
+            j << "{\"id\": " << t.id << ", \"text\": \"" << json_escape(t.text) << "\"}";
+            first = false;
+        }
+        j << "],\n";
+    }
+
+    /* Challenges */
+    j << "  \"challenges_active\": [";
+    {
+        bool first = true;
+        for (const auto& c : state.master.challenges) {
+            if (c.completed) continue;
+            if (!first) j << ", ";
+            j << "{\"desc\": \"" << json_escape(c.description) << "\", \"progress\": "
+              << c.current_count << ", \"target\": " << c.target_count
+              << ", \"coins\": " << c.coin_reward << "}";
+            first = false;
+        }
+        j << "],\n";
+    }
+
+    /* Daily todos */
+    reset_daily_todos(state.master);
+    j << "  \"daily_todos\": [";
+    {
+        bool first = true;
+        for (const auto& dt : state.master.daily_todos) {
+            if (!first) j << ", ";
+            j << "{\"text\": \"" << json_escape(dt.text) << "\", \"done\": " << (dt.done ? "true" : "false") << "}";
+            first = false;
+        }
+        j << "],\n";
+    }
+
+    /* Character checklists */
+    j << "  \"char_checklists\": [";
+    {
+        bool first = true;
+        for (auto& ci : state.master.char_checklists) {
+            /* Auto-reset */
+            if (ci.done && ci.repeat_hours > 0 && ci.last_completed > 0) {
+                double elapsed_h = difftime(now, ci.last_completed) / 3600.0;
+                if (elapsed_h >= ci.repeat_hours) ci.done = false;
+            }
+            if (!first) j << ", ";
+            const Person* cp = find_person(state.persons, ci.person_id);
+            j << "{\"person\": \"" << ci.person_id << "\", \"person_name\": \""
+              << (cp ? json_escape(cp->name) : ci.person_id)
+              << "\", \"text\": \"" << json_escape(ci.text)
+              << "\", \"done\": " << (ci.done ? "true" : "false")
+              << ", \"repeat_hours\": " << ci.repeat_hours << "}";
+            first = false;
+        }
+        j << "],\n";
+    }
+
+    /* Weekly stats */
+    auto ws = compute_weekly_stats(state.persons, state.practice_log, 7);
+    j << "  \"stats_weekly\": [";
+    for (size_t i = 0; i < ws.size(); i++) {
+        if (i > 0) j << ", ";
+        j << "{\"person\": \"" << ws[i].person_id << "\", \"name\": \"" << ws[i].person_name
+          << "\", \"minutes\": " << ws[i].total_minutes << ", \"days_active\": " << ws[i].days_active
+          << ", \"streak\": " << ws[i].current_streak << "}";
+    }
+    j << "],\n";
+
+    /* Recent practice (today) */
+    j << "  \"practice_today\": [";
+    {
+        time_t today_start = now - (now % 86400);
+        bool first = true;
+        for (const auto& pe : state.practice_log) {
+            if (pe.timestamp < today_start) continue;
+            if (!first) j << ", ";
+            j << "{\"person\": \"" << pe.person_id << "\", \"skill\": \"" << pe.skill_name
+              << "\", \"minutes\": " << pe.minutes << "}";
+            first = false;
+        }
+        j << "],\n";
+    }
+
+    /* Diary today */
+    j << "  \"diary_today\": [";
+    {
+        bool first = true;
+        for (const auto& de : state.master.diary_log) {
+            struct tm dtm;
+            time_t t = de.timestamp;
+            localtime_r(&t, &dtm);
+            if (dtm.tm_year == tm_now.tm_year && dtm.tm_mon == tm_now.tm_mon && dtm.tm_mday == tm_now.tm_mday) {
+                if (!first) j << ", ";
+                j << "{\"time\": \"" << time_to_str(de.timestamp) << "\", \"text\": \"" << json_escape(de.text) << "\"}";
+                first = false;
+            }
+        }
+        j << "]\n";
+    }
+
+    j << "}\n";
+
+    /* Write to file */
+    const char* home = getenv("HOME");
+    std::string path = home ? std::string(home) + "/tomogichi-agora.json" : "tomogichi-agora.json";
+    std::ofstream f(path);
+    if (f.is_open()) {
+        f << j.str();
+        f.close();
+    }
+
+    /* Also update Agora's active_memory.md with a summary for AI context */
+    std::string mem_path = home ? std::string(home) + "/.local/share/agora/memories" : "";
+    if (!mem_path.empty()) {
+        mkdir(mem_path.c_str(), 0755);
+        std::string am_path = mem_path + "/active_memory.md";
+        std::ofstream am(am_path);
+        if (am.is_open()) {
+            am << "# Tomogichi Bridge Data\n";
+            am << "**Generated:** " << date_buf << " " << time_buf << "\n\n";
+            am << "## Guild\n";
+            am << "- Level: " << gl << " | Coins: " << state.master.coins
+               << " | Entropy: " << state.master.entropy << "/100 | Sync: " << state.master.team_sync << "%\n\n";
+            am << "## Characters\n";
+            for (const auto& p : state.persons) {
+                time_t latest = 0;
+                for (const auto& s : p.skills) if (s.last_practice > latest) latest = s.last_practice;
+                CharMood mood = char_mood(latest);
+                am << "- " << mood_emoji(mood) << " **" << p.name << "** (" << p.role << ") Lvl "
+                   << p.level << " " << p.title;
+                if (latest > 0) am << " — last practice " << days_since(latest) << "d ago";
+                am << "\n";
+                for (const auto& s : p.skills) {
+                    am << "  - " << s.name << (s.is_main ? " ★" : "") << " lvl " << s.level;
+                    if (s.last_practice > 0) am << " (" << days_since(s.last_practice) << "d)";
+                    am << "\n";
+                }
+            }
+            am << "\n## Upcoming (next 30 min)\n";
+            bool any = false;
+            for (const auto& cs : state.master.calendar) {
+                int event_min = cs.hour * 60 + cs.minute;
+                int now_min = tm_now.tm_hour * 60 + tm_now.tm_min;
+                int delta = event_min - now_min;
+                if (cs.day_of_week == tm_now.tm_wday && delta >= 0 && delta <= 30) {
+                    am << "- 🔔 **" << std::setfill('0') << std::setw(2) << cs.hour << ":" << std::setw(2) << cs.minute << "** — " << cs.label << " (in " << delta << " min)\n";
+                    any = true;
+                }
+            }
+            if (!any) am << "- Nothing urgent.\n";
+            am << "\n## Today's Calendar\n";
+            am << "(See JSON for full schedule)\n";
+            am << "\n## Tasks\n";
+            for (const auto& t : state.master.tasks) {
+                if (!t.done) am << "- [ ] " << t.text << "\n";
+            }
+            am.close();
+        }
+    }
+
+    std::cout << "Agora bridge exported to " << path << "\n";
+    std::cout << "  → " << j.str().size() << " bytes JSON\n";
+    std::cout << "  → Agora active memory updated\n\n";
+}
+
+static void cmd_export_json(GameState& state) {
+    /* Short JSON without the full calendar expansion */
+    std::cout << "For the full JSON bridge file, use: export agora\n\n";
+    cmd_export_agora(state);
+}
+
 /* --- Command: export --- */
 
 static void cmd_export(GameState& state, std::istringstream& iss) {
@@ -1447,8 +1755,14 @@ static void cmd_export(GameState& state, std::istringstream& iss) {
         std::cout << "Exported " << state.practice_log.size()
                   << " entries to " << path << "\n\n";
     }
+    else if (format == "agora" || format == "bridge") {
+        cmd_export_agora(state);
+    }
+    else if (format == "json") {
+        cmd_export_json(state);
+    }
     else {
-        std::cout << "Usage: export csv\n\n";
+        std::cout << "Usage: export csv | export agora | export json\n\n";
     }
 }
 
@@ -2114,6 +2428,9 @@ int main(int argc, char **argv) {
         state = default_state();
     }
 
+    /* Auto-export Agora bridge on startup */
+    cmd_export_agora(state);
+
     std::cout << "\033[1;36m"
               << "══════════════════════════════════\n"
               << "  Tomogichi — Personal RPG System\n"
@@ -2234,6 +2551,7 @@ int main(int argc, char **argv) {
                 if (!save_state(STATE_PATH, state)) {
                     std::cout << "\033[31mWarning: failed to save!\033[0m\n";
                 }
+                cmd_export_agora(state);
                 continue;
             }
             else if (sub == "cancel" || sub == "abort") {
@@ -2275,6 +2593,8 @@ int main(int argc, char **argv) {
         if (!save_state(STATE_PATH, state)) {
             std::cout << "\033[31mWarning: failed to save state!\033[0m\n";
         }
+        /* Auto-export Agora bridge JSON */
+        cmd_export_agora(state);
     }
 
     /* Warn if timer still running on exit */
@@ -2293,6 +2613,7 @@ int main(int argc, char **argv) {
     } else {
         std::cout << "\033[31mFailed to save state!\033[0m\n";
     }
+    cmd_export_agora(state);
 
     std::cout << "Goodbye.\n";
     return 0;
