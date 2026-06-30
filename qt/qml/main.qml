@@ -11,14 +11,16 @@ Kirigami.ApplicationWindow {
 
     pageStack.initialPage: guildPage
 
-    // Theme safe-guard — apply when Backend is ready
-    Component.onCompleted: Qt.callLater(function() { applyTheme() })
+    // Theme — applied on load via initial binding + on change via signal
+    Component.onCompleted: {
+        try { applyTheme() } catch (e) {}
+    }
     Connections {
         target: Backend
         function onBoostChanged() { applyTheme() }
     }
     function applyTheme() {
-        var t = Backend ? Backend.theme : 0
+        var t = Backend.theme
         if (t === 1) Kirigami.Theme.colorSet = Kirigami.Theme.Light
         else if (t === 2) Kirigami.Theme.colorSet = Kirigami.Theme.Dark
         else Kirigami.Theme.colorSet = Kirigami.Theme.Window

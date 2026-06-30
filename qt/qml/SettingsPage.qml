@@ -237,28 +237,28 @@ Kirigami.Page {
                     border.color: Qt.rgba(0.5,0.5,0.5,0.2)
                     color: Kirigami.Theme.backgroundColor
                     ScrollView {
+                        id: diaryScrollView
                         anchors.fill: parent
                         anchors.margins: 4
                         ScrollBar.vertical.policy: ScrollBar.AsNeeded
                         TextEdit {
                             id: diaryInput
-                            width: parent.width
+                            width: parent ? parent.width : 200
                             text: ""
                             textFormat: TextEdit.PlainText
                             wrapMode: TextEdit.Wrap
                             font.pixelSize: 13
                             color: Kirigami.Theme.textColor
-                            onTextChanged: {} // placeholder handled differently
                         }
                     }
-                }
-                Label {
-                    text: diaryInput.text.length === 0 ? "What happened today?" : ""
-                    anchors.left: diaryInput.left; anchors.leftMargin: 12
-                    anchors.top: diaryInput.top; anchors.topMargin: 10
-                    font.pixelSize: 13
-                    color: Kirigami.Theme.disabledTextColor
-                    visible: diaryInput.text.length === 0
+                    Label {
+                        text: diaryInput.text.length === 0 ? "What happened today?" : ""
+                        anchors.left: parent.left; anchors.leftMargin: 12
+                        anchors.top: parent.top; anchors.topMargin: 10
+                        font.pixelSize: 13
+                        color: Kirigami.Theme.disabledTextColor
+                        visible: diaryInput.text.length === 0
+                    }
                 }
                 Button { text: "Save"; Layout.alignment: Qt.AlignRight; onClicked: addDiary() }
             }
