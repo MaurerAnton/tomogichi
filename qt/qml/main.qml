@@ -11,16 +11,25 @@ Kirigami.ApplicationWindow {
 
     pageStack.initialPage: guildPage
 
-    // Theme — applied on load + on change via Connections
-    Component.onCompleted: applyTheme()
+    // Theme safe-guard — apply when Backend is ready
+    Component.onCompleted: Qt.callLater(function() { applyTheme() })
     Connections {
         target: Backend
         function onBoostChanged() { applyTheme() }
     }
     function applyTheme() {
-        if (Backend.theme === 1) Kirigami.Theme.colorSet = Kirigami.Theme.Light
-        else if (Backend.theme === 2) Kirigami.Theme.colorSet = Kirigami.Theme.Dark
+        var t = Backend ? Backend.theme : 0
+        if (t === 1) Kirigami.Theme.colorSet = Kirigami.Theme.Light
+        else if (t === 2) Kirigami.Theme.colorSet = Kirigami.Theme.Dark
         else Kirigami.Theme.colorSet = Kirigami.Theme.Window
+    }
+
+    // Shared timer chip formatter
+    function formatTimerChip() {
+        var sec = Backend.timerElapsedSec
+        var m = Math.floor(sec / 60)
+        var s = sec % 60
+        return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s
     }
 
     // Timer indicator chip
@@ -48,13 +57,6 @@ Kirigami.ApplicationWindow {
             running: Backend.timerRunning
             repeat: true
             onTriggered: timerChipText.text = "⏱ " + formatTimerChip()
-        }
-
-        function formatTimerChip() {
-            var sec = Backend.timerElapsedSec
-            var m = Math.floor(sec / 60)
-            var s = sec % 60
-            return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s
         }
     }
 

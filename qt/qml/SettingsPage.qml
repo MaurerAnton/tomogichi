@@ -229,16 +229,36 @@ Kirigami.Page {
                         Label { text: modelData.text; font.pixelSize: 13; wrapMode: Text.WordWrap; Layout.fillWidth: true }
                     }
                 }
-                ScrollView {
+                Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 120
-                    ScrollBar.vertical.policy: ScrollBar.AsNeeded
-                    TextArea {
-                        id: diaryInput
-                        width: parent.width
-                        placeholderText: "What happened today?"
-                        wrapMode: TextArea.Wrap
+                    radius: 8
+                    border.width: 1
+                    border.color: Qt.rgba(0.5,0.5,0.5,0.2)
+                    color: Kirigami.Theme.backgroundColor
+                    ScrollView {
+                        anchors.fill: parent
+                        anchors.margins: 4
+                        ScrollBar.vertical.policy: ScrollBar.AsNeeded
+                        TextEdit {
+                            id: diaryInput
+                            width: parent.width
+                            text: ""
+                            textFormat: TextEdit.PlainText
+                            wrapMode: TextEdit.Wrap
+                            font.pixelSize: 13
+                            color: Kirigami.Theme.textColor
+                            onTextChanged: {} // placeholder handled differently
+                        }
                     }
+                }
+                Label {
+                    text: diaryInput.text.length === 0 ? "What happened today?" : ""
+                    anchors.left: diaryInput.left; anchors.leftMargin: 12
+                    anchors.top: diaryInput.top; anchors.topMargin: 10
+                    font.pixelSize: 13
+                    color: Kirigami.Theme.disabledTextColor
+                    visible: diaryInput.text.length === 0
                 }
                 Button { text: "Save"; Layout.alignment: Qt.AlignRight; onClicked: addDiary() }
             }
