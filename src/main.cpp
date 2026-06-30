@@ -1459,7 +1459,7 @@ static void cmd_export_agora(GameState& state) {
     std::ostringstream j;
     j << "{\n";
     j << "  \"app\": \"tomogichi\",\n";
-    j << "  \"version\": \"0.5.0\",\n";
+    j << "  \"version\": \"0.5.1\",\n";
     j << "  \"emergency\": " << (state.master.entropy > 90 ? "true" : "false") << ",\n";
     j << "  \"generated_at\": \"" << date_buf << "T" << time_buf << ":00\",\n";
     j << "  \"today\": {\"date\": \"" << date_buf << "\", \"dow\": " << tm_now.tm_wday << "},\n";
@@ -2455,7 +2455,7 @@ int main(int argc, char **argv) {
     /* Handle flags */
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0) {
-            std::cout << "tomogichi v0.5.0\n";
+            std::cout << "tomogichi v0.5.1\n";
             return 0;
         }
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {

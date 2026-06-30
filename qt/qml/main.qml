@@ -11,18 +11,9 @@ Kirigami.ApplicationWindow {
 
     pageStack.initialPage: guildPage
 
-    // Theme — applied on load and when changed in Settings
-    Component.onCompleted: {
-        var t = Backend.theme
-        Kirigami.Theme.colorSet = t === 1 ? 1 : t === 2 ? 2 : 0  // 0=System, 1=Light, 2=Dark
-    }
-    Connections {
-        target: Backend
-        function onBoostChanged() {
-            var t = Backend.theme
-            Kirigami.Theme.colorSet = t === 1 ? 1 : t === 2 ? 2 : 0
-        }
-    }
+    // Theme — reactive property binding (не JS, не императивно)
+    // 0=System, 1=Light, 2=Dark — меняется автоматически при смене в Settings
+    Kirigami.Theme.colorSet: Backend.theme
 
     // Shared timer chip formatter
     function formatTimerChip() {
