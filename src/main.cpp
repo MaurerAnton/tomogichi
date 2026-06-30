@@ -1786,13 +1786,15 @@ static void cmd_emergency(GameState& state) {
         eout << "# 🚨 EMERGENCY PROTOCOL ACTIVE 🚨\n";
         eout << "**Triggered:** " << ts << "\n";
         eout << "**Status:** User reports being in a bad state.\n\n";
-        eout << "## ⚠️ AI Instructions\n";
-        eout << "1. Analyze the last week of practice data in active_memory below for neglect patterns\n";
-        eout << "2. Check which characters are most idle and suggest 5-min easy practice\n";
-        eout << "3. Give compassionate, serious support — DO NOT be cheery\n";
+        eout << "## ⚠️ CRITICAL — YOU MUST ACT NOW\n";
+        eout << "You MUST immediately respond with the emergency protocol. DO NOT wait for the user to mention it.\n";
+        eout << "1. Immediately acknowledge the emergency in a serious, compassionate tone\n";
+        eout << "2. Use tomogichi_read tool to analyze last week's practice data\n";
+        eout << "3. Check which characters are most idle and suggest a single 5-min easy practice\n";
         eout << "4. Create a simple recovery plan with one concrete first step\n";
-        eout << "5. After responding, remind the user this file exists and ask if they want to clear it\n\n";
-        eout << "The user's full Tomogichi state is in the message context.\n";
+        eout << "5. DO NOT be cheery or dismissive — be serious and supportive\n";
+        eout << "6. After helping, use tomogichi_diary_add to log this emergency (ask user first)\n\n";
+        eout << "The user's full Tomogichi data is in this conversation context.\n";
         eout.close();
     }
 
