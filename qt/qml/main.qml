@@ -11,24 +11,16 @@ Kirigami.ApplicationWindow {
 
     pageStack.initialPage: guildPage
 
-    // Theme: applied on load and whenever changed in Settings
+    // Theme — applied on load and when changed in Settings
     Component.onCompleted: {
-        if (Backend.theme === 1)
-            Kirigami.Theme.colorSet = Kirigami.Theme.Light
-        else if (Backend.theme === 2)
-            Kirigami.Theme.colorSet = Kirigami.Theme.Dark
-        else
-            Kirigami.Theme.colorSet = Kirigami.Theme.Window
+        var t = Backend.theme
+        Kirigami.Theme.colorSet = t === 1 ? 1 : t === 2 ? 2 : 0  // 0=System, 1=Light, 2=Dark
     }
     Connections {
         target: Backend
         function onBoostChanged() {
-            if (Backend.theme === 1)
-                Kirigami.Theme.colorSet = Kirigami.Theme.Light
-            else if (Backend.theme === 2)
-                Kirigami.Theme.colorSet = Kirigami.Theme.Dark
-            else
-                Kirigami.Theme.colorSet = Kirigami.Theme.Window
+            var t = Backend.theme
+            Kirigami.Theme.colorSet = t === 1 ? 1 : t === 2 ? 2 : 0
         }
     }
 
