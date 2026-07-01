@@ -1196,3 +1196,16 @@ QVariantList Backend::practiceHistory() const {
     }
     return list;
 }
+
+QColor Backend::getColor(const QString &name) const {
+    bool d = (m_state.master.theme == 2);
+    if (name == "bg")       return d ? QColor("#1e1e1e") : QColor("#fcfcfc");
+    if (name == "text")     return d ? QColor("#e0e0e0") : QColor("#333333");
+    if (name == "subText")  return d ? QColor("#909090") : QColor("#777777");
+    if (name == "highlight") return d ? QColor("#5294e2") : QColor("#3d8ce8");
+    if (name == "accent")   return d ? QColor("#4caf50") : QColor("#388e3c");
+    if (name == "danger")   return d ? QColor("#f44336") : QColor("#d32f2f");
+    if (name == "border")   return d ? QColor("#404040") : QColor("#e0e0e0");
+    if (name == "dim")      return d ? QColor("#333333") : QColor("#eeeeee");
+    return QColor("#ff00ff"); // magenta = error indicator
+}

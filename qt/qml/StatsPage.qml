@@ -4,6 +4,10 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 
 Kirigami.Page {
+    background: Rectangle { color: Backend.getColor("bg") }
+    leftPadding: 12
+    rightPadding: 12
+    topPadding: 8
     id: statsPage
     title: "Stats"
 
@@ -28,7 +32,7 @@ Kirigami.Page {
                     Layout.fillWidth: true
                     height: 36
                     radius: 8
-                    color: index === activeTab ? Kirigami.Theme.highlightColor : "transparent"
+                    color: index === activeTab ? Backend.getColor("highlight") : "transparent"
                     opacity: index === activeTab ? 0.2 : 0.05
                     Label {
                         anchors.centerIn: parent
@@ -62,26 +66,26 @@ Kirigami.Page {
                             width: parent ? parent.width : 300
                             height: 44
                             radius: 8
-                            color: Kirigami.Theme.backgroundColor
+                            color: Backend.getColor("bg")
                             border.width: 1
                             border.color: Qt.rgba(0,0,0,0.1)
                             RowLayout {
                                 anchors.fill: parent
                                 anchors.margins: 8
                                 Label { text: modelData.personName; font.bold: true }
-                                Label { text: modelData.skillName; color: Kirigami.Theme.disabledTextColor }
+                                Label { text: modelData.skillName; color: Backend.getColor("subText") }
                                 Item { Layout.fillWidth: true }
-                                Label { text: "🔋" + modelData.energized; color: "#4CAF50"; font.pixelSize: 11 }
-                                Label { text: "😐" + modelData.neutral; color: "#FFC107"; font.pixelSize: 11 }
-                                Label { text: "😮‍💨" + modelData.tired; color: "#FF5722"; font.pixelSize: 11 }
-                                Label { text: "🪫" + modelData.drained; color: "#9E9E9E"; font.pixelSize: 11 }
+                                Label { text: "🔋" + modelData.energized; color: Backend.getColor("accent"); font.pixelSize: 11 }
+                                Label { text: "😐" + modelData.neutral; color: Backend.getColor("highlight"); font.pixelSize: 11 }
+                                Label { text: "😮‍💨" + modelData.tired; color: "#f44336"; font.pixelSize: 11 }
+                                Label { text: "🪫" + modelData.drained; color: Backend.getColor("subText"); font.pixelSize: 11 }
                             }
                         }
                     }
                     Label {
                         visible: Backend.skillEffectStats.length === 0
                         text: "No practice data yet. Start practicing to see effects."
-                        color: Kirigami.Theme.disabledTextColor
+                        color: Backend.getColor("subText")
                         font.pixelSize: 13
                     }
                 }
@@ -98,7 +102,7 @@ Kirigami.Page {
                             width: parent ? parent.width : 300
                             height: 44
                             radius: 8
-                            color: Kirigami.Theme.backgroundColor
+                            color: Backend.getColor("bg")
                             border.width: 1
                             border.color: Qt.rgba(0,0,0,0.1)
                             ColumnLayout {
@@ -111,10 +115,10 @@ Kirigami.Page {
                                 }
                                 RowLayout {
                                     spacing: 6
-                                    Label { text: "🔋" + modelData.energized; color: "#4CAF50"; font.pixelSize: 11 }
-                                    Label { text: "😐" + modelData.neutral; color: "#FFC107"; font.pixelSize: 11 }
-                                    Label { text: "😮‍💨" + modelData.tired; color: "#FF5722"; font.pixelSize: 11 }
-                                    Label { text: "🪫" + modelData.drained; color: "#9E9E9E"; font.pixelSize: 11 }
+                                    Label { text: "🔋" + modelData.energized; color: Backend.getColor("accent"); font.pixelSize: 11 }
+                                    Label { text: "😐" + modelData.neutral; color: Backend.getColor("highlight"); font.pixelSize: 11 }
+                                    Label { text: "😮‍💨" + modelData.tired; color: "#f44336"; font.pixelSize: 11 }
+                                    Label { text: "🪫" + modelData.drained; color: Backend.getColor("subText"); font.pixelSize: 11 }
                                 }
                             }
                         }
@@ -124,7 +128,7 @@ Kirigami.Page {
                 Label {
                     visible: Backend.timeEffectStats.length === 0 || !hasTimeData()
                     text: "No time-of-day data yet."
-                    color: Kirigami.Theme.disabledTextColor
+                    color: Backend.getColor("subText")
                     font.pixelSize: 13
                 }
             }
@@ -140,7 +144,7 @@ Kirigami.Page {
                             width: parent ? parent.width : 300
                             height: 40
                             radius: 8
-                            color: Kirigami.Theme.backgroundColor
+                            color: Backend.getColor("bg")
                             RowLayout {
                                 anchors.fill: parent
                                 anchors.margins: 8
@@ -152,17 +156,17 @@ Kirigami.Page {
                                 Rectangle {
                                     width: modelData.energizedPct
                                     height: 20; radius: 4
-                                    color: "#4CAF50"
+                                    color: Backend.getColor("accent")
                                     Label {
                                         anchors.centerIn: parent
                                         text: modelData.energizedPct + "%"
-                                        font.pixelSize: 10; color: "white"
+                                        font.pixelSize: 10; color: Backend.getColor("text")
                                     }
                                 }
                                 Label {
                                     text: "(" + modelData.sampleCount + "×)"
                                     font.pixelSize: 11
-                                    color: Kirigami.Theme.disabledTextColor
+                                    color: Backend.getColor("subText")
                                 }
                             }
                         }
@@ -170,7 +174,7 @@ Kirigami.Page {
                     Label {
                         visible: Backend.activityChains.length === 0
                         text: "Practice multiple skills in one day to see patterns.\nE.g. 'drawing → meditation' shows how you felt."
-                        color: Kirigami.Theme.disabledTextColor
+                        color: Backend.getColor("subText")
                     }
                 }
             }
@@ -184,7 +188,7 @@ Kirigami.Page {
                         width: ListView.view ? ListView.view.width : 300
                         height: 36
                         radius: 6
-                        color: Kirigami.Theme.backgroundColor
+                        color: Backend.getColor("bg")
                         opacity: 0.8
 
                         RowLayout {
@@ -196,7 +200,7 @@ Kirigami.Page {
                                 text: modelData.dateStr
                                 font.pixelSize: 11
                                 font.family: "monospace"
-                                color: Kirigami.Theme.disabledTextColor
+                                color: Backend.getColor("subText")
                             }
                             Label {
                                 text: modelData.personId
@@ -206,7 +210,7 @@ Kirigami.Page {
                             Label {
                                 text: modelData.skillName
                                 font.pixelSize: 12
-                                color: Kirigami.Theme.disabledTextColor
+                                color: Backend.getColor("subText")
                             }
                             Item { Layout.fillWidth: true }
                             Label {
@@ -224,14 +228,14 @@ Kirigami.Page {
                                 visible: modelData.notes.length > 0
                                 text: "📝"
                                 font.pixelSize: 12
-                                color: Kirigami.Theme.disabledTextColor
+                                color: Backend.getColor("subText")
                             }
                         }
                     }
                     Label {
                         visible: Backend.practiceHistory.length === 0
                         text: "No practice sessions yet."
-                        color: Kirigami.Theme.disabledTextColor
+                        color: Backend.getColor("subText")
                     }
                 }
             }
@@ -273,7 +277,7 @@ Kirigami.Page {
                             Label {
                                 text: Math.floor(modelData.minutes / 60) + "h " + (modelData.minutes % 60) + "m"
                                 font.pixelSize: 12
-                                color: Kirigami.Theme.disabledTextColor
+                                color: Backend.getColor("subText")
                                 Layout.leftMargin: 60
                             }
                         }
@@ -282,7 +286,7 @@ Kirigami.Page {
                     Label {
                         visible: Backend.weeklyPie.length === 0
                         text: "No practice this week."
-                        color: Kirigami.Theme.disabledTextColor
+                        color: Backend.getColor("subText")
                     }
 
                     Kirigami.Separator { Layout.fillWidth: true }
@@ -293,7 +297,7 @@ Kirigami.Page {
                         Label {
                             text: totalWeekHours() + "h"
                             font.pixelSize: 20; font.bold: true
-                            color: Kirigami.Theme.highlightColor
+                            color: Backend.getColor("highlight")
                         }
                     }
                 }

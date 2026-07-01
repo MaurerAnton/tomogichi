@@ -4,6 +4,10 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 
 Kirigami.Page {
+    background: Rectangle { color: Backend.getColor("bg") }
+    leftPadding: 12
+    rightPadding: 12
+    topPadding: 8
     id: todayPage
     title: "Today"
     property int todayDow: new Date().getDay()
@@ -86,7 +90,7 @@ Kirigami.Page {
                     model: ["M","T","W","T","F","S","S"]
                     Label {
                         text: modelData; font.pixelSize: 11; font.bold: true
-                        color: Kirigami.Theme.disabledTextColor
+                        color: Backend.getColor("subText")
                         Layout.preferredWidth: 28; horizontalAlignment: Text.AlignHCenter
                     }
                 }
@@ -110,14 +114,14 @@ Kirigami.Page {
                     model: []
                     delegate: Rectangle {
                         Layout.preferredWidth: 28; Layout.preferredHeight: 28; radius: 4
-                        color: modelData.isToday ? Kirigami.Theme.highlightColor :
-                               modelData.level === 3 ? "#2E7D32" :
-                               modelData.level === 2 ? "#4CAF50" :
-                               modelData.level === 1 ? "#81C784" : Qt.rgba(0.5,0.5,0.5,0.1)
+                        color: modelData.isToday ? Backend.getColor("highlight") :
+                               modelData.level === 3 ? "#388e3c" :
+                               modelData.level === 2 ? Backend.getColor("accent") :
+                               modelData.level === 1 ? Backend.getColor("accent") : Qt.rgba(0.5,0.5,0.5,0.1)
 
                         Label {
                             anchors.centerIn: parent; text: modelData.day; font.pixelSize: 10
-                            color: modelData.level > 0 || modelData.isToday ? "white" : Kirigami.Theme.disabledTextColor
+                            color: modelData.level > 0 || modelData.isToday ? "white" : Backend.getColor("subText")
                             font.bold: modelData.isToday
                         }
                         // Diary dot (orange, bottom-center)
@@ -125,7 +129,7 @@ Kirigami.Page {
                             anchors.bottom: parent.bottom; anchors.bottomMargin: 2
                             anchors.horizontalCenter: parent.horizontalCenter
                             width: 7; height: 7; radius: 3
-                            color: "#FF9800"
+                            color: "#ff9800"
                             visible: modelData.hasDiary
                         }
                         // Schedule dot (blue, bottom-left)
@@ -133,7 +137,7 @@ Kirigami.Page {
                             anchors.bottom: parent.bottom; anchors.bottomMargin: 2
                             anchors.left: parent.left; anchors.leftMargin: 2
                             width: 7; height: 7; radius: 3
-                            color: "#2196F3"
+                            color: "#2196f3"
                             visible: modelData.hasSchedule
                         }
                         MouseArea {
@@ -157,7 +161,7 @@ Kirigami.Page {
                 id: dayTooltip
                 visible: false
                 font.pixelSize: 11
-                color: Kirigami.Theme.disabledTextColor
+                color: Backend.getColor("subText")
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
             }
@@ -165,10 +169,10 @@ Kirigami.Page {
             RowLayout {
                 spacing: 4
                 Repeater {
-                    model: [{c:Qt.rgba(0.5,0.5,0.5,0.1),t:"0"},{c:"#81C784",t:"<30m"},{c:"#4CAF50",t:"<90m"},{c:"#2E7D32",t:"90m+"},{c:"#FF9800",t:"diary"},{c:"#2196F3",t:"sched"}]
+                    model: [{c:Qt.rgba(0.5,0.5,0.5,0.1),t:"0"},{c:Backend.getColor("accent"),t:"<30m"},{c:Backend.getColor("accent"),t:"<90m"},{c:"#388e3c",t:"90m+"},{c:"#ff9800",t:"diary"},{c:"#2196f3",t:"sched"}]
                     delegate: RowLayout { spacing: 2
                         Rectangle { width:12; height:12; radius:2; color: modelData.c }
-                        Label { text: modelData.t; font.pixelSize: 9; color: Kirigami.Theme.disabledTextColor }
+                        Label { text: modelData.t; font.pixelSize: 9; color: Backend.getColor("subText") }
                     }
                 }
             }
@@ -184,8 +188,8 @@ Kirigami.Page {
                     Layout.fillWidth: true
                     Rectangle {
                         width: 6; height: 24; radius: 3
-                        color: modelData.date ? "#2196F3" :
-                               modelData.dayOfWeek === todayDow ? Kirigami.Theme.highlightColor : Qt.rgba(0.5,0.5,0.5,0.3)
+                        color: modelData.date ? "#2196f3" :
+                               modelData.dayOfWeek === todayDow ? Backend.getColor("highlight") : Backend.getColor("border")
                     }
                     Label {
                         text: modelData.desc
@@ -196,7 +200,7 @@ Kirigami.Page {
                     Label {
                         text: "✎"
                         font.pixelSize: 14
-                        color: Kirigami.Theme.highlightColor
+                        color: Backend.getColor("highlight")
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
@@ -213,7 +217,7 @@ Kirigami.Page {
                     Label {
                         text: "✕"
                         font.pixelSize: 14
-                        color: "#EF5350"
+                        color: Backend.getColor("danger")
                         MouseArea {
                             anchors.fill: parent
                             onClicked: Backend.calendarDelete(modelData.index)
@@ -236,7 +240,7 @@ Kirigami.Page {
             Label {
                 text: getTodoDone() + "/" + Backend.dailyTodos.length + " done"
                 font.pixelSize: 12
-                color: Kirigami.Theme.disabledTextColor
+                color: Backend.getColor("subText")
                 visible: Backend.dailyTodos.length > 0
             }
 
@@ -245,8 +249,8 @@ Kirigami.Page {
                 delegate: RowLayout {
                     spacing: 10
                     CheckBox { checked: modelData.done; onClicked: Backend.dailyTodoToggle(index) }
-                    Label { text: modelData.text; font.pixelSize: 14; color: modelData.done ? Kirigami.Theme.disabledTextColor : Kirigami.Theme.textColor }
-                    Label { text: "✕"; color: "#EF5350"; font.pixelSize: 14; MouseArea { anchors.fill: parent; onClicked: Backend.dailyTodoDelete(index) } }
+                    Label { text: modelData.text; font.pixelSize: 14; color: modelData.done ? Backend.getColor("subText") : Backend.getColor("text") }
+                    Label { text: "✕"; color: Backend.getColor("danger"); font.pixelSize: 14; MouseArea { anchors.fill: parent; onClicked: Backend.dailyTodoDelete(index) } }
                 }
             }
             RowLayout { spacing: 8
@@ -270,8 +274,8 @@ Kirigami.Page {
                     text: (modelData.isToday ? "🎂 TODAY: " : "🔔 ") + modelData.name + " — " + modelData.date +
                           (modelData.isToday ? "" : " (in " + modelData.daysAway + " days)")
                     font.pixelSize: 13
-                    color: modelData.isToday ? "#EF5350" :
-                           modelData.daysAway <= 3 ? "#FFC107" : Kirigami.Theme.disabledTextColor
+                    color: modelData.isToday ? Backend.getColor("danger") :
+                           modelData.daysAway <= 3 ? Backend.getColor("highlight") : Backend.getColor("subText")
                     font.bold: modelData.isToday
                 }
             }

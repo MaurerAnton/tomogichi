@@ -4,6 +4,10 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 
 Kirigami.Page {
+    background: Rectangle { color: Backend.getColor("bg") }
+    leftPadding: 12
+    rightPadding: 12
+    topPadding: 8
     id: timerPage
     title: "Timer"
 
@@ -52,13 +56,13 @@ Kirigami.Page {
             Label {
                 text: personName
                 font.pixelSize: 18; font.bold: true
-                color: Kirigami.Theme.highlightColor
+                color: Backend.getColor("highlight")
                 Layout.alignment: Qt.AlignHCenter
             }
             Label {
                 text: skillName
                 font.pixelSize: 14
-                color: Kirigami.Theme.disabledTextColor
+                color: Backend.getColor("subText")
                 Layout.alignment: Qt.AlignHCenter
             }
         }
@@ -67,14 +71,14 @@ Kirigami.Page {
             text: formatTime(elapsedSec)
             font.pixelSize: 64; font.bold: true; font.family: "monospace"
             Layout.alignment: Qt.AlignHCenter
-            color: plannedMin > 0 && elapsedSec > plannedMin * 60 ? "#EF5350" : Kirigami.Theme.textColor
+            color: plannedMin > 0 && elapsedSec > plannedMin * 60 ? Backend.getColor("danger") : Backend.getColor("text")
         }
 
         Label {
             text: plannedMin > 0 ? "Planned: " + plannedMin + " min" : "Free practice"
             font.pixelSize: 13
             Layout.alignment: Qt.AlignHCenter
-            color: Kirigami.Theme.disabledTextColor
+            color: Backend.getColor("subText")
         }
 
         Item { Layout.fillHeight: true }

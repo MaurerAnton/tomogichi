@@ -1,3 +1,4 @@
+#include <QColor>
 #ifndef TOMOGICHI_BACKEND_H
 #define TOMOGICHI_BACKEND_H
 
@@ -89,6 +90,7 @@ public:
     int totalSessions() const;
     bool onboardingSeen() const;
     int theme() const;
+    Q_INVOKABLE QColor getColor(const QString &name) const;
     Q_INVOKABLE void setTheme(int t);
     QString wallpaper() const;
     Q_INVOKABLE void setWallpaper(const QString &path);

@@ -4,6 +4,10 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 
 Kirigami.Page {
+    background: Rectangle { color: Backend.getColor("bg") }
+    leftPadding: 12
+    rightPadding: 12
+    topPadding: 8
     id: personPage
     title: personName
 
@@ -53,12 +57,12 @@ Kirigami.Page {
                 Label {
                     text: personRole + " · Lvl " + personLevel + " " + personTitle + " · " + getTotalXP() + " XP"
                     font.pixelSize: 14
-                    color: Kirigami.Theme.disabledTextColor
+                    color: Backend.getColor("subText")
                 }
             }
             Item { Layout.fillWidth: true }
             Label {
-                text: "✎"; font.pixelSize: 18; color: Kirigami.Theme.highlightColor
+                text: "✎"; font.pixelSize: 18; color: Backend.getColor("highlight")
                 MouseArea { anchors.fill: parent; onClicked: renamePersonDialog.open() }
             }
         }
@@ -75,9 +79,9 @@ Kirigami.Page {
                     width: ListView.view ? ListView.view.width : 300
                     height: 72
                     radius: 10
-                    color: Kirigami.Theme.backgroundColor
+                    color: Backend.getColor("bg")
                     border.width: 1
-                    border.color: model.isMain ? Kirigami.Theme.highlightColor : Qt.rgba(0.5, 0.5, 0.5, 0.3)
+                    border.color: model.isMain ? Backend.getColor("highlight") : Backend.getColor("border")
 
                     MouseArea {
                         anchors.fill: parent
@@ -108,15 +112,15 @@ Kirigami.Page {
                             RowLayout {
                                 Label { text: model.name + (model.isMain ? " ★" : ""); font.pixelSize: 15; font.bold: model.isMain }
                                 Item { Layout.fillWidth: true }
-                                Label { text: "lvl " + model.level; font.pixelSize: 13; color: Kirigami.Theme.positiveTextColor }
+                                Label { text: "lvl " + model.level; font.pixelSize: 13; color: Backend.getColor("accent") }
                             }
 
                             Rectangle {
                                 Layout.fillWidth: true; height: 6; radius: 3
-                                color: Qt.rgba(0.5, 0.5, 0.5, 0.3)
+                                color: Backend.getColor("border")
                                 Rectangle {
                                     width: parent.width * model.progressPct / 100; height: parent.height; radius: 3
-                                    color: model.warmth === "warm" ? "#4CAF50" : model.warmth === "cool" ? "#FFC107" : "#9E9E9E"
+                                    color: model.warmth === "warm" ? Backend.getColor("accent") : model.warmth === "cool" ? Backend.getColor("highlight") : Backend.getColor("subText")
                                 }
                             }
 
@@ -124,7 +128,7 @@ Kirigami.Page {
                                 text: model.daysSince === 0 ? "today" : model.daysSince === 1 ? "1 day ago" : model.daysSince + " days ago"
                                 font.pixelSize: 11
                                 visible: model.daysSince >= 0
-                                color: model.warmth === "cold" ? "#EF5350" : Kirigami.Theme.disabledTextColor
+                                color: model.warmth === "cold" ? Backend.getColor("danger") : Backend.getColor("subText")
                             }
                         }
 
@@ -135,7 +139,7 @@ Kirigami.Page {
                             // Start timer (▶)
                             Label {
                                 text: "▶"
-                                font.pixelSize: 22; color: Kirigami.Theme.highlightColor
+                                font.pixelSize: 22; color: Backend.getColor("highlight")
                                 MouseArea {
                                     anchors.fill: parent
                                     onClicked: {
@@ -151,7 +155,7 @@ Kirigami.Page {
                             // Rename (✎)
                             Label {
                                 text: "✎"
-                                font.pixelSize: 14; color: Kirigami.Theme.disabledTextColor
+                                font.pixelSize: 14; color: Backend.getColor("subText")
                                 MouseArea {
                                     anchors.fill: parent
                                     onClicked: {
@@ -165,7 +169,7 @@ Kirigami.Page {
                             // Delete (✕)
                             Label {
                                 text: "✕"
-                                font.pixelSize: 14; color: "#EF5350"
+                                font.pixelSize: 14; color: Backend.getColor("danger")
                                 visible: skillModel.count > 1 || !model.isMain
                                 MouseArea {
                                     anchors.fill: parent
@@ -199,13 +203,13 @@ Kirigami.Page {
             model: archiveModel
             delegate: Rectangle {
                 width: parent ? parent.width : 300; height: 36; radius: 6
-                color: Kirigami.Theme.backgroundColor; opacity: 0.6
+                color: Backend.getColor("bg"); opacity: 0.6
                 RowLayout {
                     anchors.fill: parent; anchors.margins: 6
-                    Label { text: modelData.name; font.pixelSize: 13; color: Kirigami.Theme.disabledTextColor; Layout.fillWidth: true }
-                    Label { text: "lvl " + modelData.level + " · " + modelData.xp + " XP"; font.pixelSize: 11; color: Kirigami.Theme.disabledTextColor }
+                    Label { text: modelData.name; font.pixelSize: 13; color: Backend.getColor("subText"); Layout.fillWidth: true }
+                    Label { text: "lvl " + modelData.level + " · " + modelData.xp + " XP"; font.pixelSize: 11; color: Backend.getColor("subText") }
                     Label {
-                        text: "↩"; font.pixelSize: 16; color: Kirigami.Theme.highlightColor
+                        text: "↩"; font.pixelSize: 16; color: Backend.getColor("highlight")
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
@@ -242,7 +246,7 @@ Kirigami.Page {
         RowLayout {
             Kirigami.Heading { text: "☑ Checklist"; level: 3; Layout.fillWidth: true }
             Label {
-                text: "+"; font.pixelSize: 22; color: Kirigami.Theme.highlightColor
+                text: "+"; font.pixelSize: 22; color: Backend.getColor("highlight")
                 MouseArea { anchors.fill: parent; onClicked: addChecklistDialog.open() }
             }
         }
@@ -262,17 +266,17 @@ Kirigami.Page {
                     spacing: 0; Layout.fillWidth: true
                     Label {
                         text: modelData.text; font.pixelSize: 13
-                        color: modelData.done ? Kirigami.Theme.disabledTextColor : Kirigami.Theme.textColor
+                        color: modelData.done ? Backend.getColor("subText") : Backend.getColor("text")
                     }
                     Label {
                         text: modelData.repeatHours > 0 ?
                               (modelData.done ? "↻ repeats in " + modelData.repeatInHours + "h" : "↻ every " + modelData.repeatHours + "h") : ""
-                        font.pixelSize: 10; color: Kirigami.Theme.highlightColor
+                        font.pixelSize: 10; color: Backend.getColor("highlight")
                         visible: modelData.repeatHours > 0
                     }
                 }
                 Label {
-                    text: "⏱"; font.pixelSize: 14; color: Kirigami.Theme.highlightColor
+                    text: "⏱"; font.pixelSize: 14; color: Backend.getColor("highlight")
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
@@ -283,7 +287,7 @@ Kirigami.Page {
                     }
                 }
                 Label {
-                    text: "✕"; color: "#EF5350"; font.pixelSize: 14
+                    text: "✕"; color: Backend.getColor("danger"); font.pixelSize: 14
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
@@ -380,7 +384,7 @@ Kirigami.Page {
                     inputMethodHints: Qt.ImhDigitsOnly
                     onAccepted: doSet()
                 }
-                Label { text: "hours (0 = no repeat)"; font.pixelSize: 11; color: Kirigami.Theme.disabledTextColor }
+                Label { text: "hours (0 = no repeat)"; font.pixelSize: 11; color: Backend.getColor("subText") }
             }
         }
         standardButtons: Dialog.Ok | Dialog.Cancel

@@ -4,6 +4,10 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 
 Kirigami.Page {
+    background: Rectangle { color: Backend.getColor("bg") }
+    leftPadding: 12
+    rightPadding: 12
+    topPadding: 8
     id: diaryPage
     title: "Diary"
 
@@ -19,13 +23,13 @@ Kirigami.Page {
         section.delegate: Rectangle {
             width: diaryList.width
             height: 32
-            color: Kirigami.Theme.backgroundColor
+            color: Backend.getColor("bg")
             Label {
                 anchors.centerIn: parent
                 text: section
                 font.pixelSize: 13
                 font.bold: true
-                color: Kirigami.Theme.highlightColor
+                color: Backend.getColor("highlight")
             }
         }
 
@@ -37,9 +41,9 @@ Kirigami.Page {
                 Layout.fillWidth: true
                 implicitHeight: entryCol.implicitHeight + 16
                 radius: 10
-                color: Kirigami.Theme.backgroundColor
+                color: Backend.getColor("bg")
                 border.width: 1
-                border.color: Qt.rgba(0.5, 0.5, 0.5, 0.15)
+                border.color: Backend.getColor("border")
 
                 ColumnLayout {
                     id: entryCol
@@ -56,7 +60,7 @@ Kirigami.Page {
                     Label {
                         text: modelData.dateStr
                         font.pixelSize: 11
-                        color: Kirigami.Theme.disabledTextColor
+                        color: Backend.getColor("subText")
                     }
 
                     // Show comments
@@ -74,7 +78,7 @@ Kirigami.Page {
                             Label {
                                 text: modelData.timeStr
                                 font.pixelSize: 10
-                                color: Kirigami.Theme.disabledTextColor
+                                color: Backend.getColor("subText")
                             }
                         }
                     }
@@ -106,7 +110,7 @@ Kirigami.Page {
                     Label {
                         text: modelData.comments.length > 0 ? "💬 " + modelData.comments.length : "💬"
                         font.pixelSize: 12
-                        color: Kirigami.Theme.highlightColor
+                        color: Backend.getColor("highlight")
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {

@@ -4,6 +4,10 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 
 Kirigami.Page {
+    background: Rectangle { color: Backend.getColor("bg") }
+    leftPadding: 12
+    rightPadding: 12
+    topPadding: 8
     id: guildPage
     title: "Guild"
 
@@ -57,7 +61,7 @@ Kirigami.Page {
         anchors.centerIn: parent
         visible: false
         text: ""
-        color: "#EF5350"
+        color: Backend.getColor("danger")
         font.pixelSize: 12
         wrapMode: Text.WordWrap
     }
@@ -76,7 +80,7 @@ Kirigami.Page {
         Label {
             text: "💰 " + Backend.coins + " coins"
             font.pixelSize: 13
-            color: "#FFC107"
+            color: Backend.getColor("highlight")
             visible: Backend.coins > 0
         }
 
@@ -87,13 +91,13 @@ Kirigami.Page {
             radius: 10
             color: Qt.rgba(0.94, 0.2, 0.2, 0.15)
             border.width: 2
-            border.color: "#EF5350"
+            border.color: Backend.getColor("danger")
             visible: true
             RowLayout {
                 anchors.centerIn: parent
                 spacing: 8
                 Label { text: "🚨"; font.pixelSize: 22 }
-                Label { text: "EMERGENCY — Notify AI (bad state)"; font.pixelSize: 14; color: "#EF5350"; font.bold: true }
+                Label { text: "EMERGENCY — Notify AI (bad state)"; font.pixelSize: 14; color: Backend.getColor("danger"); font.bold: true }
             }
             MouseArea {
                 anchors.fill: parent
@@ -107,12 +111,12 @@ Kirigami.Page {
             visible: Backend.xpBoostActive || Backend.coinsDoubleActive
             Label {
                 text: "⚡ XP Boost active"
-                font.pixelSize: 11; color: "#4CAF50"
+                font.pixelSize: 11; color: Backend.getColor("accent")
                 visible: Backend.xpBoostActive
             }
             Label {
                 text: "🪙 2× Coins active"
-                font.pixelSize: 11; color: "#FFC107"
+                font.pixelSize: 11; color: Backend.getColor("highlight")
                 visible: Backend.coinsDoubleActive
             }
         }
@@ -144,7 +148,7 @@ Kirigami.Page {
                 anchors.centerIn: parent
                 text: "💔 " + parent.getNeglectName() + " needs practice! (" + parent.getNeglectDays() + "d idle)"
                 font.pixelSize: 12
-                color: "#EF5350"
+                color: Backend.getColor("danger")
             }
         }
 
@@ -163,39 +167,39 @@ Kirigami.Page {
                 Label {
                     text: "⚡ Sync: " + Backend.teamSync + "%"
                     font.pixelSize: 13
-                    color: Backend.teamSync >= 75 ? "#4CAF50" :
-                           Backend.teamSync >= 50 ? "#FFC107" : Kirigami.Theme.disabledTextColor
+                    color: Backend.teamSync >= 75 ? Backend.getColor("accent") :
+                           Backend.teamSync >= 50 ? Backend.getColor("highlight") : Backend.getColor("subText")
                 }
                 Rectangle {
                     Layout.fillWidth: true
                     height: 8; radius: 4
-                    color: Qt.rgba(0.5, 0.5, 0.5, 0.3)
+                    color: Backend.getColor("border")
                     Rectangle {
                         width: parent.width * Backend.teamSync / 100
                         height: parent.height; radius: 4
-                        color: "#4CAF50"
+                        color: Backend.getColor("accent")
                     }
                 }
 
                 Label {
                     text: "💀 Entropy: " + Backend.entropy
                     font.pixelSize: 13
-                    color: Backend.entropy > 50 ? "#EF5350" :
-                           Backend.entropy > 25 ? "#FFC107" : Kirigami.Theme.disabledTextColor
+                    color: Backend.entropy > 50 ? Backend.getColor("danger") :
+                           Backend.entropy > 25 ? Backend.getColor("highlight") : Backend.getColor("subText")
                 }
                 Rectangle {
                     Layout.preferredWidth: 60
                     height: 8; radius: 4
-                    color: Qt.rgba(0.5, 0.5, 0.5, 0.3)
+                    color: Backend.getColor("border")
                     Rectangle {
                         width: parent.width * Backend.entropy / 100
                         height: parent.height; radius: 4
-                        color: Backend.entropy > 50 ? "#EF5350" : "#FFC107"
+                        color: Backend.entropy > 50 ? Backend.getColor("danger") : Backend.getColor("highlight")
                     }
                 }
             }
 
-            color: Backend.entropy > 50 ? Qt.rgba(0.94, 0.2, 0.2, 0.1) : Qt.rgba(0, 0, 0, 0.05)
+            color: Backend.entropy > 50 ? Qt.rgba(0.94, 0.2, 0.2, 0.1) : Backend.getColor("dim")
         }
 
         Connections {
@@ -209,17 +213,17 @@ Kirigami.Page {
             Label {
                 text: "This week: " + getWeekTotal() + "h"
                 font.pixelSize: 13
-                color: Kirigami.Theme.disabledTextColor
+                color: Backend.getColor("subText")
             }
             Label {
                 text: "Today: " + getTodayMins() + "m"
                 font.pixelSize: 13
-                color: Kirigami.Theme.highlightColor
+                color: Backend.getColor("highlight")
             }
             Label {
                 text: "Total: " + Backend.totalPracticeXP + " XP"
                 font.pixelSize: 13
-                color: Kirigami.Theme.positiveTextColor
+                color: Backend.getColor("accent")
             }
         }
 
@@ -231,7 +235,7 @@ Kirigami.Page {
                 text: "  " + modelData.personId + " " + modelData.skillName + " " + modelData.minutes + "m  " +
                       (modelData.effect === "energized" ? "🔋" : modelData.effect === "tired" ? "😮‍💨" : modelData.effect === "drained" ? "🪫" : "😐")
                 font.pixelSize: 12
-                color: Kirigami.Theme.disabledTextColor
+                color: Backend.getColor("subText")
             }
         }
 
@@ -251,9 +255,9 @@ Kirigami.Page {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 160
                         radius: 12
-                        color: Kirigami.Theme.backgroundColor
+                        color: Backend.getColor("bg")
                         border.width: 1
-                        border.color: Qt.rgba(0.5, 0.5, 0.5, 0.3)
+                        border.color: Backend.getColor("border")
 
                         MouseArea {
                             anchors.fill: parent
@@ -276,13 +280,13 @@ Kirigami.Page {
                             anchors.bottom: parent.bottom
                             anchors.margins: 8
                             width: 32; height: 32; radius: 16
-                            color: Kirigami.Theme.highlightColor
+                            color: Backend.getColor("highlight")
                             opacity: 0.8
                             Label {
                                 anchors.centerIn: parent
                                 text: "▶"
                                 font.pixelSize: 14
-                                color: "white"
+                                color: Backend.getColor("text")
                             }
                             MouseArea {
                                 anchors.fill: parent
@@ -309,10 +313,10 @@ Kirigami.Page {
                                 spacing: 0
                                 Label { text: model.name; font.pixelSize: 18; font.bold: true }
                                 RowLayout {
-                                    Label { text: model.role; font.pixelSize: 14; color: Kirigami.Theme.textColor }
+                                    Label { text: model.role; font.pixelSize: 14; color: Backend.getColor("text") }
                                     Label {
                                         text: "✓"
-                                        font.pixelSize: 12; color: "#4CAF50"
+                                        font.pixelSize: 12; color: Backend.getColor("accent")
                                         visible: model.practicedToday
                                     }
                                 }
@@ -321,13 +325,13 @@ Kirigami.Page {
                             Label {
                                 text: "Lvl " + model.level + " · " + model.title
                                 font.pixelSize: 13
-                                color: "#4CAF50"
+                                color: Backend.getColor("accent")
                             }
                             Item { Layout.fillHeight: true }
                             Label {
                                 text: "▶ " + model.mainSkill
                                 font.pixelSize: 12
-                                color: Kirigami.Theme.highlightColor
+                                color: Backend.getColor("highlight")
                             }
                         }
                     }
@@ -382,7 +386,7 @@ Kirigami.Page {
             }
             Label {
                 text: "The AI will analyze last week's activity, check neglected characters, and create a recovery plan."
-                wrapMode: Text.WordWrap; font.pixelSize: 12; color: Kirigami.Theme.disabledTextColor
+                wrapMode: Text.WordWrap; font.pixelSize: 12; color: Backend.getColor("subText")
             }
         }
         standardButtons: Dialog.Ok | Dialog.Cancel

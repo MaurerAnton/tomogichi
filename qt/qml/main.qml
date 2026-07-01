@@ -5,15 +5,19 @@ import org.kde.kirigami as Kirigami
 
 Kirigami.ApplicationWindow {
     id: root
+    color: Backend.getColor("bg")
     title: "Tomogichi"
     width: 400
     height: 720
 
+
+    // Force background color (Kirigami ignores plain color:)
+    background: Rectangle { color: Backend.getColor("bg") }
+    Component.onCompleted: console.log("[qml] window bg=" + Backend.getColor("bg"))
     pageStack.initialPage: guildPage
 
     // Theme — reactive property binding (не JS, не императивно)
     // 0=System, 1=Light, 2=Dark — меняется автоматически при смене в Settings
-    Kirigami.Theme.colorSet: Backend.theme
 
     // Shared timer chip formatter
     function formatTimerChip() {
@@ -31,7 +35,6 @@ Kirigami.ApplicationWindow {
         width: timerChipText.implicitWidth + 20
         height: 28
         radius: 14
-        color: Kirigami.Theme.highlightColor
         visible: Backend.timerRunning
         z: 250
 
@@ -40,7 +43,7 @@ Kirigami.ApplicationWindow {
             anchors.centerIn: parent
             text: "⏱ " + formatTimerChip()
             font.pixelSize: 12
-            color: "white"
+            color: Backend.getColor("text")
         }
 
         Timer {
@@ -64,7 +67,6 @@ Kirigami.ApplicationWindow {
         id: onboardingOverlay
         Rectangle {
             anchors.fill: parent
-            color: Kirigami.Theme.backgroundColor
             ColumnLayout {
                 anchors.centerIn: parent
                 spacing: 20
@@ -98,10 +100,10 @@ Kirigami.ApplicationWindow {
     }
 
     // Pages
-    Component { id: guildPage; GuildPage {} }
-    Component { id: todayPage; TodayPage {} }
+    Component { id: guildPage; GuildPage { Component.onCompleted: console.log("[qml] GuildPage bg=" + Backend.getColor("bg") + " text=" + Backend.getColor("text")) } }
+    Component { id: todayPage; TodayPage { Component.onCompleted: console.log("[qml] TodayPage bg=" + Backend.getColor("bg")) } }
     Component { id: statsPage; StatsPage {} }
-    Component { id: settingsPage; SettingsPage {} }
+    Component { id: settingsPage; SettingsPage { Component.onCompleted: console.log("[qml] SettingsPage bg=" + Backend.getColor("bg")) } }
     Component { id: diaryFullPage; DiaryPage {} }
 
     // Effect picker — shown after timer stop
@@ -125,7 +127,6 @@ Kirigami.ApplicationWindow {
                 width: Math.min(parent.width * 0.85, 380)
                 height: col.implicitHeight + 40
                 radius: 16
-                color: Kirigami.Theme.backgroundColor
 
                 ColumnLayout {
                     id: col
@@ -145,7 +146,6 @@ Kirigami.ApplicationWindow {
                         id: effectTitle
                         text: ""
                         font.pixelSize: 14
-                        color: Kirigami.Theme.disabledTextColor
                         Layout.alignment: Qt.AlignHCenter
                     }
 
@@ -162,10 +162,10 @@ Kirigami.ApplicationWindow {
 
                         Repeater {
                             model: [
-                                { t: "Energized", i: "🔋", e: "energized", c: "#4CAF50" },
-                                { t: "Neutral",   i: "😐", e: "neutral",   c: "#FFC107" },
-                                { t: "Tired",     i: "😮‍💨", e: "tired",    c: "#FF5722" },
-                                { t: "Drained",   i: "🪫", e: "drained",   c: "#9E9E9E" }
+                                { t: "Energized", i: "🔋", e: "energized", c: Backend.getColor("accent") },
+                                { t: "Neutral",   i: "😐", e: "neutral",   c: Backend.getColor("highlight") },
+                                { t: "Tired",     i: "😮‍💨", e: "tired",    c: "#f44336" },
+                                { t: "Drained",   i: "🪫", e: "drained",   c: Backend.getColor("subText") }
                             ]
                             delegate: Rectangle {
                                 width: 72; height: 90; radius: 12
@@ -226,14 +226,14 @@ Kirigami.ApplicationWindow {
         anchors.horizontalCenter: parent.horizontalCenter
         y: 60
         width: 160; height: 40; radius: 20
-        color: "#FFC107"
+        color: Backend.getColor("highlight")
         visible: false; z: 200
         Label {
             id: coinToastText
             anchors.centerIn: parent
             text: ""
             font.pixelSize: 16; font.bold: true
-            color: "#333"
+            color: Backend.getColor("text")
         }
     }
     Timer {
